@@ -24,7 +24,7 @@
   --bg:#f5f5f7; --surface:#ffffff; --surface-2:#f7f7f9; --hover:#ececf0;
   --text:#1d1d1f; --muted:#5b5b63; --line:#d6d6dc; --line-soft:#ebebef;
   --accent:#0a62cc; --accent-text:#ffffff; --select:rgba(10,98,204,.11); --zebra:rgba(0,0,0,.028);
-  --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#0a58ca; --baseline:#9a9aa6;
+  --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#d42a63; --baseline:#9a9aa6;
   --c-blue:#2f6fde; --c-teal:#0f8585; --c-green:#2e8a39; --c-orange:#c25e0c; --c-pink:#c0357a; --c-purple:#6f48c8; --c-phase:#3a3a44;
   --row:2.25rem; --hdr:3.5rem;
 }
@@ -33,7 +33,7 @@
     --bg:#141416; --surface:#1d1d20; --surface-2:#242428; --hover:#2e2e33;
     --text:#f2f2f5; --muted:#a8a8b2; --line:#3a3a41; --line-soft:#2b2b30;
     --accent:#4d94ff; --accent-text:#0b0b0d; --select:rgba(77,148,255,.17); --zebra:rgba(255,255,255,.035);
-    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#5aa9ff; --baseline:#77778a;
+    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff6b9b; --baseline:#77778a;
     --c-blue:#5b8ff0; --c-teal:#2bb0b0; --c-green:#4fb65c; --c-orange:#ee8a3c; --c-pink:#e8619f; --c-purple:#9b7cf0; --c-phase:#c9c9d3;
   }
 }
@@ -42,7 +42,7 @@
     --bg:#141416; --surface:#1d1d20; --surface-2:#242428; --hover:#2e2e33;
     --text:#f2f2f5; --muted:#a8a8b2; --line:#3a3a41; --line-soft:#2b2b30;
     --accent:#4d94ff; --accent-text:#0b0b0d; --select:rgba(77,148,255,.17); --zebra:rgba(255,255,255,.035);
-    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#5aa9ff; --baseline:#77778a;
+    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff6b9b; --baseline:#77778a;
     --c-blue:#5b8ff0; --c-teal:#2bb0b0; --c-green:#4fb65c; --c-orange:#ee8a3c; --c-pink:#e8619f; --c-purple:#9b7cf0; --c-phase:#c9c9d3;
 }
 :root[data-theme="light"]{ color-scheme: light; }
@@ -83,7 +83,7 @@ button{font:inherit;color:inherit}
 .toolbar button.primary:hover:not(:disabled){background:var(--accent);filter:brightness(1.08)}
 .toolbar button[aria-pressed="true"],.toolbar button[aria-pressed="true"]:hover:not(:disabled){background:var(--accent);color:var(--accent-text)}
 .toolbar button[data-act="critical"][aria-pressed="true"],.toolbar button[data-act="critical"][aria-pressed="true"]:hover{background:var(--crit);color:#fff}
-.toolbar button[data-act="progline"][aria-pressed="true"],.toolbar button[data-act="progline"][aria-pressed="true"]:hover{background:var(--progress);color:#fff}
+.toolbar button[data-act="progline"][aria-pressed="true"],.toolbar button[data-act="progline"][aria-pressed="true"]:hover{background:#d42a63;color:#fff}
 :root[data-theme="dark"] .toolbar button[data-act="progline"][aria-pressed="true"]{color:var(--accent-text)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .toolbar button[data-act="progline"][aria-pressed="true"]{color:var(--accent-text)}}
 #projName{font:inherit;font-weight:650;font-size:1.05em;color:inherit;border:1px solid transparent;background:transparent;padding:.1rem .35rem;margin-left:-.35rem;border-radius:.4rem;width:22rem;max-width:50vw}
@@ -245,7 +245,7 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 .hcell.hol{background:var(--holiday);color:var(--today)}
 .hcell.now{color:var(--today);font-weight:700}
 .tl-body{position:relative;user-select:none;-webkit-user-select:none;padding-bottom:3rem}
-.tl-bg{position:absolute;inset:0;pointer-events:none}
+.tl-bg{position:absolute;inset:0 0 3rem;pointer-events:none} /* stop at the last row, not in the spare space below it */
 .nwk{position:absolute;top:0;bottom:0;background:var(--nonwork)}
 .hold{position:absolute;top:0;bottom:0;background:var(--holiday)}
 .vline{position:absolute;top:0;bottom:0;width:1px;background:var(--line-soft)}
@@ -1109,6 +1109,12 @@ function schedule(){
     if(!changed) break;
   }
   for(const it of leaves){ const v = S.get(it.id); v.tf = workdays(v.ef, v.lf); v.crit = v.tf <= 0; }
+  // Where a shortfall starts: the task with its own missed date, or the one that runs into a fixed date after it.
+  // The tasks leading up to it inherit the same negative float, but only this one gets the warning.
+  for(const it of leaves){
+    const v = S.get(it.id);
+    v.short = v.tf < 0 && !(succ.get(it.id) || []).some(({ Y }) => (S.get(Y.id).tf ?? 0) <= v.tf);
+  }
 }
 function normalizeOrder(){
   const items = project.items, map = new Map(items.map(i => [i.id, i]));
@@ -1435,7 +1441,7 @@ function renderBackground(t){
     if(hol) h += `<div class="hold" style="left:${(n - origin) * dayW}px;width:${Math.max(dayW, 2)}px"></div>`;
     else if(!coarse()){ let m = n; while(m + 1 < end && !cal.isWork(m + 1) && !cal.holiday(m + 1)) m++; h += `<div class="nwk" style="left:${(n - origin) * dayW}px;width:${(m - n + 1) * dayW}px"></div>`; n = m; }
   }
-  if(t >= origin && t < end) h += `<div class="today" title="Today" style="left:${(t - origin + 0.5) * dayW}px"></div>`;
+  if(t >= origin && t < end && !project.progressLine) h += `<div class="today" title="Today" style="left:${(t - origin + 0.5) * dayW}px"></div>`;
   els.tlBg.innerHTML = h;
 }
 const prevWork = b => { let d = b - 1; for(let i = 0; i < LIMIT && !cal.isWork(d); i++) d--; return d; };
@@ -1477,7 +1483,7 @@ function renderRows(vis){
         const lead = kidsOn
           ? `<button class="twisty" tabindex="-1" data-twisty="${esc(it.id)}" aria-label="${it.collapsed ? 'Expand' : 'Collapse'} ${esc(it.name)}">${it.collapsed ? '▸' : '▾'}</button>`
           : `<span class="twisty-sp" aria-hidden="true">${r.ms ? '◆' : ''}</span>`;
-        return `<div class="c k-name" data-col="name" style="--depth:${d}">${lead}<span class="nm${fmtCls(it)}">${esc(it.name)}</span>${missedDeadline(it) ? `<span class="ind" title="Finishes after its deadline (${esc(fmt(toDay(it.deadline), fLong))})" aria-label="Misses its deadline">!</span>` : (S.get(it.id)?.tf ?? 0) < 0 && !kidsOn ? `<span class="ind" title="Can’t meet its constraint or deadline: ${-(S.get(it.id).tf)} working day${S.get(it.id).tf === -1 ? '' : 's'} short" aria-label="Late against a constraint">!</span>` : ''}${it.ctype || it.pinned ? `<span class="cind" title="${esc(conText(it))}" aria-label="${esc(conText(it))}">⧗</span>` : ''}</div>`;
+        return `<div class="c k-name" data-col="name" style="--depth:${d}">${lead}<span class="nm${fmtCls(it)}">${esc(it.name)}</span>${missedDeadline(it) ? `<span class="ind" title="Finishes after its deadline (${esc(fmt(toDay(it.deadline), fLong))})" aria-label="Misses its deadline">!</span>` : S.get(it.id)?.short && !kidsOn ? `<span class="ind" title="Can’t meet its date, or a fixed date on the task after it: ${-(S.get(it.id).tf)} working day${S.get(it.id).tf === -1 ? '' : 's'} short. Tasks leading up to it show negative float." aria-label="Late against a constraint">!</span>` : ''}${it.ctype || it.pinned ? `<span class="cind" title="${esc(conText(it))}" aria-label="${esc(conText(it))}">⧗</span>` : ''}</div>`;
       }
       const txt = cellText(c.key, it, r);
       const extra = c.key === 'float' && r.crit && !kidsOn && showCrit ? ' crit' : '';
@@ -2426,6 +2432,7 @@ function readPrintForm(){
 }
 // Tell people how many sheets they'll get before they print
 function updatePrintHint(){
+  pr('prToday').disabled = pr('prProg').checked; // no today line alongside the progress line
   const n = buildPrint(readPrintForm(), true), s = k => k === 1 ? '' : 's';
   pr('prAcrossHint').textContent = n.total === 1 ? 'Prints on 1 page.'
     : n.across === 1 ? `Prints on ${n.total} pages, one below the other.`
@@ -2461,7 +2468,7 @@ $('#printForm').addEventListener('submit', async e => {
 });
 const PAPER = { A4:[210,297], A3:[297,420], Letter:[215.9,279.4] };
 const PC = { blue:'#2f6fde', teal:'#0f8585', green:'#2e8a39', orange:'#c25e0c', pink:'#c0357a', purple:'#6f48c8', phase:'#3a3a44', crit:'#d0213b',
-  text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', today:'#d42a63', arrow:'#6b6b75', progress:'#0a58ca', baseline:'#9a9aa6' };
+  text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', today:'#d42a63', arrow:'#6b6b75', progress:'#d42a63', baseline:'#9a9aa6' };
 function buildPrint(o = project.print, dry = false){
   const title = o.title || project.name;
   const [pw, ph] = PAPER[o.paper], [W0, H0] = o.orient === 'landscape' ? [ph, pw] : [pw, ph];
@@ -2597,7 +2604,8 @@ function buildPrint(o = project.print, dry = false){
       svg += `<path d="${g.d}" fill="none" stroke="${PC.progress}" stroke-width=".4" stroke-linejoin="round"/>` + g.dots.map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".6" fill="${PC.progress}"/>`).join('');
     }
     svg += labels; // on top of the arrows so they stay readable
-    if(o.today && t >= a && t < b) svg += `<line x1="${X(t) + dw / 2}" y1="${CH}" x2="${X(t) + dw / 2}" y2="${svgH}" stroke="${PC.today}" stroke-width=".35"/>`;
+    // No today line with the progress line: that already marks the status date
+    if(o.today && !o.progress && t >= a && t < b) svg += `<line x1="${X(t) + dw / 2}" y1="${CH}" x2="${X(t) + dw / 2}" y2="${svgH}" stroke="${PC.today}" stroke-width=".35"/>`;
     const mk = (id, c) => `<marker id="${id}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="1.6" markerHeight="1.6" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L8 4L0 8z" fill="${c}"/></marker>`;
     // Each sheet across shows its own slice of the same drawing
     const svgEl = (pt, k) => `<svg xmlns="http://www.w3.org/2000/svg" width="${pt.w}mm" height="${svgH}mm" viewBox="${pt.off} 0 ${pt.w} ${svgH}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif"><defs>${mk('pa' + pg, PC.arrow)}${mk('pa' + pg + 'c', PC.crit)}<clipPath id="pc${pg}_${k}"><rect x="${pt.off}" width="${pt.w}" height="${svgH}"/></clipPath></defs><g clip-path="url(#pc${pg}_${k})">${pre}${hdrFor(pt.pa, pt.pb)}${svg}</g></svg>`;
