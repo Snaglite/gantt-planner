@@ -399,6 +399,74 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
   *,*::before,*::after,dialog::backdrop{animation:none!important;transition:none!important}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
+/* ================= iPhone view ================= */
+body:not(.phone) .ph-only{display:none!important}
+body.phone > header.toolbar, body.phone #timeline, body.phone #lpane, body.phone #splitter{display:none!important}
+body.phone:not(.ph-chart) #split, body.phone.ph-chart #phBody{display:none!important}
+body.phone #phTop{order:1} body.phone #split, body.phone #phBody{order:2} body.phone #phTabs{order:3}
+body.phone .lnk{display:none}
+body.phone .bar,body.phone .ms{touch-action:auto;cursor:pointer}
+/* Text follows the iPhone's Text Size setting */
+.ph-top,.ph-body,.ph-tabs,.ph-sheet{font-size:1rem;font:-apple-system-body;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.ph-top{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;padding:calc(.5rem + env(safe-area-inset-top)) max(1rem,env(safe-area-inset-right)) .6rem max(1rem,env(safe-area-inset-left));background:var(--surface-2);border-bottom:1px solid var(--line)}
+.ph-titles{flex:1 1 8em;min-width:0} /* with very large text the name gets its own line */
+.ph-titles h1{margin:0;font-size:1.15em;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-titles p{margin:.1rem 0 0;font-size:.8em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-titles p.warn{color:var(--danger)}
+.ph-btn{font:inherit;font-size:.95em;min-height:44px;min-width:44px;padding:0 .8rem;border:1px solid var(--line);border-radius:.6rem;background:var(--surface);color:var(--text);cursor:pointer}
+.ph-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text);font-weight:600}
+.ph-btn.ph-icon{padding:0}
+.ph-btn svg{width:1.3em;height:1.3em;fill:currentColor;vertical-align:middle}
+.ph-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 max(1rem,env(safe-area-inset-right)) 1.5rem max(1rem,env(safe-area-inset-left));background:var(--bg)}
+.ph-tabs{display:flex;border-top:1px solid var(--line);background:var(--surface-2);padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.ph-tabs button{flex:1;font:inherit;font-size:clamp(11px,.75em,17px);min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;background:none;border:0;color:var(--muted);cursor:pointer}
+.ph-tabs button svg{width:min(1.6em,28px);height:min(1.6em,28px);fill:none;stroke:currentColor;stroke-width:1.8}
+.ph-tabs button[aria-selected="true"]{color:var(--accent);font-weight:600}
+/* Phone turned sideways on the chart: give the chart the room (turn back upright for Open and Save) */
+@media (max-height:500px){ body.phone.ph-chart #phTop{display:none} body.phone .ph-tabs button{min-height:40px;flex-direction:row;gap:.4rem} body.phone .ph-tabs button svg{width:1.3em;height:1.3em} }
+#phBack{position:fixed;right:max(1rem,env(safe-area-inset-right));bottom:calc(1rem + env(safe-area-inset-bottom));z-index:80;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.ph-group h2{font-size:.85em;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:1.2rem 0 .5rem}
+.ph-group h2 .n{font-weight:400}
+.ph-group.late h2{color:var(--crit)}
+.ph-card{display:block;width:100%;text-align:left;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c,var(--accent));border-radius:.7rem;padding:.7rem .8rem;margin:0 0 .6rem;cursor:pointer}
+.ph-card .t{font-weight:600;line-height:1.3;display:flex;gap:.4rem;align-items:baseline}
+.ph-card .t span{flex:1;min-width:0}
+.ph-card .m{font-size:.85em;color:var(--muted);margin-top:.2rem;line-height:1.35}
+.ph-card .pbar{height:.35rem;border-radius:.2rem;background:var(--line-soft);margin-top:.5rem;overflow:hidden}
+.ph-card .pbar i{display:block;height:100%;background:var(--c,var(--accent))}
+.ph-badge{flex:none;font-size:.7em;font-weight:700;padding:.1rem .4rem;border-radius:.3rem;background:var(--crit);color:#fff}
+.ph-badge.soft{background:none;color:var(--crit);border:1px solid var(--crit)}
+.ph-empty{color:var(--muted);text-align:center;padding:2.5rem 1rem;line-height:1.5}
+.ph-note{font-size:.85em;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:.6rem;padding:.6rem .75rem;margin-top:1rem}
+.ph-find{position:sticky;top:0;background:var(--bg);padding:.75rem 0 .5rem;z-index:1}
+.ph-find input{width:100%;box-sizing:border-box;font:inherit;min-height:44px;padding:0 .8rem;border:1px solid var(--line);border-radius:.6rem;background:var(--surface);color:var(--text)}
+.ph-row{display:flex;align-items:center;gap:.5rem;width:100%;min-height:48px;text-align:left;font:inherit;color:var(--text);background:none;border:0;border-bottom:1px solid var(--line-soft);padding:.4rem 0 .4rem calc(var(--d,0) * 1rem);cursor:pointer}
+.ph-row .tw{flex:none;width:1.4em;text-align:center;color:var(--muted)}
+.ph-row .nm{flex:1;min-width:0;line-height:1.3}
+.ph-row.phase .nm{font-weight:700}
+.ph-row .dt{flex:none;font-size:.8em;color:var(--muted);text-align:right;line-height:1.3}
+.ph-row.crit .nm::after{content:" ●";color:var(--crit);font-size:.7em;vertical-align:middle}
+dialog.ph-sheet{margin:auto 0 0;width:100%;max-width:100%;max-height:88dvh;border-radius:1rem 1rem 0 0;border-bottom:0;padding:0}
+.ph-sheet-in{padding:1rem max(1rem,env(safe-area-inset-right)) calc(1rem + env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left))}
+.ph-sheet h2:focus{outline:none}
+.ph-sheet-hd{display:flex;align-items:flex-start;gap:.75rem;position:sticky;top:0;background:var(--surface);padding-top:.1rem;z-index:1}
+.ph-sheet-hd h2{flex:1;min-width:0}
+.ph-done{flex:none;font:inherit;font-weight:600;color:var(--accent);background:none;border:0;min-height:44px;min-width:44px;margin:-.6rem -.4rem 0 0;cursor:pointer}
+dialog.ph-sheet::backdrop{cursor:pointer}
+.ph-sheet h2{font-size:1.2em;margin:0 0 .2rem;line-height:1.25}
+.ph-sheet .sub{color:var(--muted);font-size:.85em;margin:0 0 .8rem}
+.ph-sheet dl{display:grid;grid-template-columns:auto 1fr;gap:.35rem .8rem;margin:0 0 1rem;font-size:.95em}
+.ph-sheet dt{color:var(--muted)}
+.ph-sheet dd{margin:0}
+.ph-prog{display:flex;gap:.4rem;margin:.4rem 0 .5rem}
+.ph-prog button{flex:1;font:inherit;font-size:.9em;min-height:44px;border:1px solid var(--line);border-radius:.55rem;background:var(--surface);color:var(--text);cursor:pointer}
+.ph-prog button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-text);font-weight:600}
+.ph-sheet input[type=range]{width:100%;min-height:44px}
+.ph-sheet label.f{display:block;font-size:.85em;color:var(--muted);margin:.8rem 0 .3rem}
+.ph-sheet input[type=text],.ph-sheet textarea{width:100%;box-sizing:border-box;font:inherit;min-height:44px;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.55rem;background:var(--surface);color:var(--text)}
+.ph-sheet textarea{min-height:5.5em;resize:vertical}
+.ph-sheet .acts{display:flex;flex-direction:column;gap:.5rem;margin-top:1.2rem}
+.ph-sheet .acts .ph-btn{width:100%}
 #printView{display:none}
 .pdf-host{position:fixed;left:-100000px;top:0;pointer-events:none} /* lays out pages off screen to measure them for Save as PDF */
 @media print{
@@ -563,6 +631,26 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
     </div>
   </section>
 </main>
+<!-- iPhone view: shown instead of the toolbars and table on phone-sized screens -->
+<header class="ph-top ph-only" id="phTop">
+  <div class="ph-titles"><h1 id="phName"></h1><p id="phStatus"></p></div>
+  <button type="button" class="ph-btn" id="phOpen" aria-label="Open a project file">Open</button>
+  <button type="button" class="ph-btn primary" id="phSave" aria-label="Save the project to a file">Save</button>
+  <button type="button" class="ph-btn ph-icon" id="phMore" aria-label="More" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+</header>
+<div class="ph-body ph-only" id="phBody">
+  <section id="phNow" aria-label="Now"></section>
+  <section id="phTasks" aria-label="All tasks" hidden>
+    <div class="ph-find"><input type="search" id="phFind" placeholder="Find a task or person" aria-label="Find a task or person" autocomplete="off"></div>
+    <div id="phTaskList" role="list"></div>
+  </section>
+</div>
+<nav class="ph-tabs ph-only" id="phTabs" role="tablist" aria-label="Views">
+  <button type="button" role="tab" data-tab="now" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Now</span></button>
+  <button type="button" role="tab" data-tab="tasks" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg><span>Tasks</span></button>
+  <button type="button" role="tab" data-tab="chart" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="9" height="3.5" rx="1"/><rect x="8" y="10.5" width="10" height="3.5" rx="1"/><rect x="13" y="16" width="8" height="3.5" rx="1"/></svg><span>Chart</span></button>
+</nav>
+<dialog id="phSheet" class="ph-sheet" aria-labelledby="phSheetTitle"><div class="ph-sheet-in" id="phSheetIn"></div></dialog>
 
 <div id="printView"></div>
 <input type="file" id="fileInput" accept=".json,.xml,application/json,text/xml,application/xml" hidden>
@@ -1699,6 +1787,11 @@ function demoProject(){
 }
 const snapshot = () => JSON.stringify(project);
 function persist(){
+  // While the phone shows its fitted chart, keep the iPad/Mac zoom in what's stored
+  if(typeof phPrevZoom !== 'undefined' && phPrevZoom){ const z = { zoom:project.zoom, fitW:project.fitW }; Object.assign(project, phPrevZoom); try { persistNow(); } finally { Object.assign(project, z); } return; }
+  persistNow();
+}
+function persistNow(){
   const save = () => localStorage.setItem(STORE_KEY, JSON.stringify({ project, meta }));
   try { save(); storageOk = true; }
   catch(e){ storageOk = false; if(trimBackups()) try { save(); storageOk = true; } catch(e2){} }
@@ -1743,6 +1836,7 @@ function setStatus(){
   else s = `Saved to a file at ${time}`;
   els.status.textContent = s;
   els.status.classList.toggle('warn', !storageOk || !!(fileHandle && autosaveErr));
+  if(phoneOn) phoneStatus();
 }
 function download(text, filename, type){
   const blob = new Blob([text], { type }), a = document.createElement('a');
@@ -1797,6 +1891,7 @@ async function loadProjectFile(file, handle){
   addBackup(true);
   selectedId = null;
   commit(() => { project = p; reindex(); }, { view:true });
+  if(typeof phNewProject === 'function') phNewProject();
   fileHandle = handle; lastAutosave = Date.now();
   if(report){
     meta.lastFileSave = null; meta.dirty = true; persist();
@@ -1910,6 +2005,7 @@ function render(){
   renderNow();
   if(snap) playMoves(snap);
   drawFreshLinks();
+  if(phoneOn) renderPhone();
 }
 function renderNow(){
   reindex();
@@ -2777,10 +2873,12 @@ els.tlRows.addEventListener('dblclick', e => { const row = e.target.closest('.tr
 let drag = null;
 function showTip(e, text){ const t = els.tip; t.textContent = text; t.hidden = false; t.style.left = (e.clientX + 14) + 'px'; t.style.top = (e.clientY + 16) + 'px'; }
 const describe = (s, e, ms) => ms ? fmt(s, fLong) : `${fmt(s)} – ${fmt(e - 1)} (${workdays(s, e)} working day${workdays(s, e) === 1 ? '' : 's'})`;
+els.tlRows.addEventListener('click', e => { if(!phoneOn) return; const row = e.target.closest('.trow'); if(row) phSheet(row.dataset.id); });
 els.tlRows.addEventListener('pointerdown', e => {
   if(e.button !== 0) return;
   const row = e.target.closest('.trow'); if(!row) return;
   const id = row.dataset.id;
+  if(phoneOn) return; // phone: read-only chart; a tap (click, below) shows the task, and swipes scroll it
   select(id); els.leftBody.focus({ preventScroll:true });
   const target = e.target.closest('.bar,.ms'); if(!target || !canEdit()) return;
   const label = row.querySelector('.blabel');
@@ -3300,22 +3398,24 @@ async function savePdf(o){
 async function deliverFile(blob, name, type){
   const file = new File([blob], name, { type });
   if(isIPad() && navigator.canShare?.({ files:[file] })){
-    try { await navigator.share({ files:[file] }); return; }
+    try { await navigator.share({ files:[file] }); return true; }
     catch(e){
-      if(e.name === 'AbortError') return;
+      if(e.name === 'AbortError') return false;
       // Safari only allows sharing straight after a tap, and making the PDF can take a moment: ask for one more tap
-      if(e.name === 'NotAllowedError'){ await askToShare(file); return; }
+      if(e.name === 'NotAllowedError') return askToShare(file);
     }
   }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 120000);
+  return true;
 }
 function askToShare(file){
   return new Promise(done => {
     const d = document.createElement('dialog');
     d.innerHTML = `<form class="dlg" method="dialog"><h2>PDF ready</h2><p>${esc(file.name)}</p><div class="actions"><button value="cancel">Cancel</button><button value="share" class="primary">Share PDF…</button></div></form>`;
-    d.querySelector('[value=share]').addEventListener('click', e => { e.preventDefault(); navigator.share({ files:[file] }).catch(() => {}).finally(() => d.close()); });
-    d.addEventListener('close', () => { d.remove(); done(); });
+    let ok = false;
+    d.querySelector('[value=share]').addEventListener('click', e => { e.preventDefault(); navigator.share({ files:[file] }).then(() => { ok = true; }).catch(() => {}).finally(() => d.close()); });
+    d.addEventListener('close', () => { d.remove(); done(ok); });
     document.body.append(d); d.showModal();
   });
 }
@@ -3662,6 +3762,7 @@ $('#backList').addEventListener('click', e => {
   addBackup(); // keep what's on screen now, just in case
   selectedId = null;
   commit(() => { project = p; reindex(); }, { view:true });
+  if(typeof phNewProject === 'function') phNewProject();
 });
 $('#backClose').addEventListener('click', () => backDlg.close());
 
@@ -3914,9 +4015,9 @@ function updateFilterMenu(){
   $('#resList').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
   document.body.classList.toggle('filtering', filterOn());
 }
-$('#findBox').addEventListener('input', e => { viewFilter.q = e.target.value; render(); });
+$('#findBox').addEventListener('input', e => { viewFilter.q = e.target.value; $('#phFind').value = e.target.value; render(); });
 $('#filterSel').addEventListener('change', e => { viewFilter.kind = e.target.value; render(); });
-function clearFilter(){ if(!filterOn()) return; viewFilter = { q:'', kind:'all' }; $('#findBox').value = ''; render(); }
+function clearFilter(){ if(!filterOn()) return; viewFilter = { q:'', kind:'all' }; $('#findBox').value = ''; $('#phFind').value = ''; render(); }
 
 /* ================= Baseline ================= */
 function saveBaseline(){
@@ -4119,10 +4220,198 @@ $('#helpAutosave').textContent = canWriteFiles
   $('#appIcon').src = document.querySelector('link[rel=icon][type="image/svg+xml"]').href;
 })();
 
+/* ================= iPhone view =================
+   On a phone-sized screen the toolbars and table make way for: a top bar (Open, Save, ⋯), three tabs (Now, Tasks,
+   Chart) and a sheet for each task with quick progress buttons. Planning stays on the iPad and Mac; the project moves
+   between devices as a file (Save to iCloud Drive there, Open it here, Save it back). */
+const phoneMQ = matchMedia('(max-width: 600px), (max-height: 500px) and (pointer: coarse)');
+let phoneOn = false, phTab = 'now', phSheetId = null, phPrevZoom = null; // phPrevZoom: the zoom to put back after the phone's chart
+const fPhDay = F({ weekday:'short', day:'numeric', month:'short' });
+// After "Full layout" on a phone, a small button brings the phone view back
+function phBackButton(){
+  let b = $('#phBack');
+  if(!(phoneMQ.matches && forcedDesktop() && !phoneOn)){ b?.remove(); return; }
+  if(!b){ b = Object.assign(document.createElement('button'), { id:'phBack', type:'button', className:'ph-btn primary', textContent:'Phone view' }); b.addEventListener('click', () => { try { sessionStorage.removeItem('ganttPlanner.fullLayout'); } catch(e){} applyPhone(); }); document.body.append(b); }
+}
+function forcedDesktop(){ try { return sessionStorage.getItem('ganttPlanner.fullLayout') === '1'; } catch(e){ return false; } }
+function applyPhone(){
+  const on = phoneMQ.matches && !forcedDesktop();
+  if(on === phoneOn){ phBackButton(); return; }
+  phoneOn = on; document.body.classList.toggle('phone', on); phBackButton();
+  $('#phFind').value = viewFilter.q;
+  if(on){ setPhTab(phTab); render(); setStatus(); }
+  else { document.body.classList.remove('ph-chart'); if(phSheetEl.open) phSheetEl.close(); if(phPrevZoom){ Object.assign(project, phPrevZoom); phPrevZoom = null; persist(); } render(); }
+}
+phoneMQ.addEventListener?.('change', applyPhone);
+// Turning the phone: refit the chart to the new width
+let phResizeT = null;
+window.addEventListener('resize', () => { if(!phoneOn || phTab !== 'chart') return; clearTimeout(phResizeT); phResizeT = setTimeout(() => zoomToFitNow(), 250); });
+const phSheetEl = $('#phSheet');
+function setPhTab(t){
+  phTab = t;
+  for(const b of document.querySelectorAll('#phTabs [data-tab]')) b.setAttribute('aria-selected', String(b.dataset.tab === t));
+  $('#phNow').hidden = t !== 'now'; $('#phTasks').hidden = t !== 'tasks';
+  document.body.classList.toggle('ph-chart', t === 'chart');
+  // The phone's chart fits the whole project on screen; put the iPad/Mac zoom back afterwards so the file isn't changed by it
+  if(t === 'chart'){ if(!phPrevZoom) phPrevZoom = { zoom:project.zoom, fitW:project.fitW }; requestAnimationFrame(() => { zoomToFitNow(); }); }
+  else phRestoreZoom();
+  $('#phBody').scrollTop = 0;
+}
+$('#phTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if(b) setPhTab(b.dataset.tab); });
+// A new project (Open, the example, a backup) brings its own zoom: refit for the phone if on the Chart tab
+function phNewProject(){ phPrevZoom = null; if(phoneOn && phTab === 'chart'){ phPrevZoom = { zoom:project.zoom, fitW:project.fitW }; requestAnimationFrame(() => zoomToFitNow()); } }
+function phRestoreZoom(){ if(!phPrevZoom) return; Object.assign(project, phPrevZoom); phPrevZoom = null; persist(); render(); }
+function phoneStatus(){
+  const st = $('#phStatus'), time = meta.lastFileSave ? new Date(meta.lastFileSave).toLocaleString(undefined, { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+  const unsaved = project.items.length && (!meta.lastFileSave || meta.dirty);
+  st.textContent = !storageOk ? 'This browser won’t keep changes: Save often' : !project.items.length ? 'Open a project file to start' : !meta.lastFileSave ? 'Not saved to a file yet' : meta.dirty ? 'Changed since saved to a file' : `Saved to a file ${time}`;
+  st.classList.toggle('warn', !storageOk || !!unsaved && !!meta.lastFileSave);
+  $('#phName').textContent = project.name;
+}
+function phCard(it, why){
+  const r = rowInfo(it), late = why === 'late', par = it.parent ? byId.get(it.parent) : null;
+  const col = r.crit && !hasKids(it) ? 'var(--crit)' : `var(--c-${it.color})`;
+  const dates = r.ms ? fmt(r.last, fPhDay) : `${fmt(r.sp.s, fPhDay)} – ${fmt(r.last, fPhDay)} · ${r.days} day${r.days === 1 ? '' : 's'}`;
+  const meta2 = [par?.name, it.resource].filter(Boolean).map(esc).join(' · ');
+  const label = `${it.name}. ${late ? 'Late. ' : ''}${r.crit ? 'Critical. ' : ''}${r.ms ? 'Milestone, ' : ''}${dates}. ${it.resource ? 'Assigned to ' + it.resource + '. ' : ''}${r.ms ? '' : (r.pr || 0) + '% done.'}`;
+  return `<button type="button" class="ph-card" data-id="${esc(it.id)}" style="--c:${col}" aria-label="${esc(label)}">
+    <div class="t"><span>${r.ms ? '◆ ' : ''}${esc(it.name)}</span>${late ? '<b class="ph-badge">Late</b>' : r.crit ? '<b class="ph-badge soft">Critical</b>' : ''}</div>
+    <div class="m">${esc(dates)}${meta2 ? '<br>' + meta2 : ''}</div>
+    ${r.ms ? '' : `<div class="pbar" aria-hidden="true"><i style="width:${r.pr || 0}%"></i></div>`}</button>`;
+}
+function renderPhone(){
+  phoneStatus();
+  // Now: what's late, this week, next week and the two weeks after (unfinished tasks and milestones only)
+  const t = todayDay(), ws = t - dow(t), sd = statusDay();
+  const leaves = project.items.filter(it => !hasKids(it) && it.type !== 'phase');
+  const isLate = it => missedDeadline(it) || (it.type !== 'milestone' && it.progress < 100 && spanOf(it).e <= sd) || (S.get(it.id)?.tf ?? 0) < 0;
+  const open = it => it.type === 'milestone' ? spanOf(it).s >= t - 7 : it.progress < 100;
+  const groups = [['late', 'Late', []], ['week', 'This week', []], ['next', 'Next week', []], ['soon', 'Coming up', []]];
+  for(const it of leaves){
+    if(!open(it)) continue;
+    const sp = spanOf(it), e = Math.max(sp.e, sp.s + 1);
+    if(isLate(it) || (it.type !== 'milestone' && e <= ws)) groups[0][2].push(it); // ended before this week and not finished: late
+    else if(sp.s < ws + 7 && e > ws) groups[1][2].push(it);
+    else if(sp.s >= ws + 7 && sp.s < ws + 14) groups[2][2].push(it);
+    else if(sp.s >= ws + 14 && sp.s < ws + 28) groups[3][2].push(it);
+  }
+  for(const g of groups) g[2].sort((a, b) => spanOf(a).s - spanOf(b).s);
+  let h = '';
+  if(!project.items.length) h = `<div class="ph-empty"><p><strong>No project open</strong></p><p>On your iPad or Mac, use <strong>Save</strong> to put the project file in iCloud Drive. Then tap <strong>Open</strong> here.</p><p><button type="button" class="ph-btn primary" data-ph="open">Open a project file</button></p><p><button type="button" class="ph-btn" data-ph="example">Try the example</button></p></div>`;
+  else {
+    for(const [k, title, list] of groups) if(list.length) h += `<section class="ph-group ${k}"><h2>${title} <span class="n">(${list.length})</span></h2>${list.map(it => phCard(it, k)).join('')}</section>`;
+    if(!h) h = '<div class="ph-empty">Nothing late, and nothing in the next few weeks.</div>';
+    if(!meta.lastFileSave || meta.dirty) h += `<p class="ph-note">Changes are kept on this phone. When you’re done, tap <strong>Save</strong> and choose <strong>Save to Files</strong> to put the file back in iCloud Drive for your iPad or Mac.</p>`;
+  }
+  $('#phNow').innerHTML = h;
+  // Tasks: the whole plan, phases open and close
+  const vis = visibleItems();
+  $('#phTaskList').innerHTML = vis.length ? vis.map(it => {
+    const r = rowInfo(it), kidsOn = hasKids(it);
+    const dt = r.ms ? fmt(r.last, fMed) : `${fmt(r.sp.s, fMed)}<br>${kidsOn ? '' : (r.pr || 0) + '%'}`;
+    const label = `${it.name}${kidsOn ? (it.collapsed ? ', phase, closed' : ', phase, open') : ''}. ${r.ms ? fmt(r.last, fMed) : fmt(r.sp.s, fMed) + ' to ' + fmt(r.last, fMed)}${kidsOn || r.ms ? '' : ', ' + (r.pr || 0) + '% done'}`;
+    return `<div role="listitem"><button type="button" class="ph-row${kidsOn ? ' phase' : ''}${r.crit && !kidsOn ? ' crit' : ''}" data-id="${esc(it.id)}" style="--d:${depth(it)}" aria-label="${esc(label)}"${kidsOn ? ` aria-expanded="${!it.collapsed}"` : ''}>
+      <span class="tw" aria-hidden="true">${kidsOn ? (it.collapsed ? '▸' : '▾') : r.ms ? '◆' : ''}</span><span class="nm">${esc(it.name)}</span><span class="dt">${dt}</span></button></div>`;
+  }).join('') : `<div class="ph-empty">${project.items.length ? 'No tasks match.' : 'No project open.'}</div>`;
+  if(phSheetId && phSheetEl.open && !(document.activeElement?.matches?.('#phRes,#phNotes'))) phSheet(phSheetId, true); // not while typing
+}
+$('#phBody').addEventListener('click', e => {
+  if(e.target.closest('[data-ph=open]')){ openFile(); return; }
+  if(e.target.closest('[data-ph=example]')){ commit(() => { project = demoProject(); reindex(); }, { view:true }); phNewProject(); return; }
+  const b = e.target.closest('[data-id]'); if(!b) return;
+  const it = byId.get(b.dataset.id); if(!it) return;
+  if(b.classList.contains('ph-row') && hasKids(it)){ toggleCollapse(it.id); return; }
+  phSheet(it.id);
+});
+$('#phFind').addEventListener('input', e => { viewFilter.q = e.target.value; $('#findBox').value = e.target.value; render(); });
+// The task sheet
+function phSheet(id, refresh = false){
+  const it = byId.get(id); if(!it) return;
+  phSheetId = id;
+  const r = rowInfo(it), kidsOn = hasKids(it), can = canEdit(), par = it.parent ? byId.get(it.parent) : null;
+  const deps = it.deps.map(d => { const p = byId.get(d.id); return p ? esc(p.name) + (d.type !== 'FS' || d.lag ? ` <span class="sub">(${d.type}${d.lag ? (d.lag > 0 ? '+' : '') + d.lag + 'd' : ''})</span>` : '') : ''; }).filter(Boolean);
+  const pr = r.pr || 0, step = [0, 25, 50, 75, 100];
+  const row = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
+  let h = `<div class="ph-sheet-hd"><h2 id="phSheetTitle" tabindex="-1">${r.ms ? '◆ ' : ''}${esc(it.name)}</h2><button type="button" class="ph-done" data-ph="close">Done</button></div><p class="sub">${[par ? esc(par.name) : '', r.crit && !kidsOn ? '<span style="color:var(--crit)">Critical</span>' : '', kidsOn ? 'Phase' : r.ms ? 'Milestone' : ''].filter(Boolean).join(' · ')}</p><dl>`
+    + (r.ms ? row('Date', esc(fmt(r.last, fLong))) : row('Start', esc(fmt(r.sp.s, fLong))) + row('Finish', esc(fmt(r.last, fLong))) + row('Days', String(r.days)))
+    + row('Waiting for', deps.join('<br>')) + row('Float', r.tf == null || kidsOn ? '' : `${r.tf} working day${r.tf === 1 ? '' : 's'}`)
+    + row('Deadline', it.deadline ? esc(fmt(toDay(it.deadline), fLong)) + (missedDeadline(it) ? ' <b class="ph-badge">Missed</b>' : '') : '') + '</dl>';
+  if(!kidsOn && !r.ms){
+    h += `<label class="f" id="phProgL">Done: <strong id="phPct">${pr}%</strong></label>
+      <div class="ph-prog" role="group" aria-labelledby="phProgL">${step.map(v => `<button type="button" data-pct="${v}" aria-pressed="${pr === v}"${can ? '' : ' disabled'}>${v}%</button>`).join('')}</div>
+      <input type="range" id="phRange" min="0" max="100" step="5" value="${pr}" aria-label="Done, per cent"${can ? '' : ' disabled'}>`;
+  }
+  if(!kidsOn){
+    h += `<label class="f" for="phRes">Assigned to</label><input type="text" id="phRes" list="resList" autocomplete="off" value="${esc(it.resource)}"${can ? '' : ' disabled'}>
+      <label class="f" for="phNotes">Notes</label><textarea id="phNotes"${can ? '' : ' disabled'}>${esc(it.notes)}</textarea>`;
+  }
+  h += '<div class="acts">';
+  if(!kidsOn && !r.ms && can) h += pr < 100 ? '<button type="button" class="ph-btn primary" data-ph="done">Mark as done</button>' : '<button type="button" class="ph-btn" data-ph="undone">Mark as not done</button>';
+  if(!can) h += '<p class="sub">Viewing only: enter a licence key (⋯ › Licence) to make changes.</p>';
+  if(can) h += '<button type="button" class="ph-btn" data-ph="more">More details…</button>';
+  h += '</div>';
+  const keep = refresh && document.activeElement && phSheetEl.contains(document.activeElement) ? document.activeElement.id : null;
+  const typed = refresh ? { phRes:$('#phRes')?.value, phNotes:$('#phNotes')?.value } : {}; // keep anything typed but not yet saved
+  $('#phSheetIn').innerHTML = h;
+  for(const [k, v] of Object.entries(typed)) if(v != null && $('#' + k)) $('#' + k).value = v;
+  if(keep && $('#' + keep)) $('#' + keep).focus({ preventScroll:true });
+  if(!phSheetEl.open){ phSheetEl.showModal(); phSheetEl.scrollTop = 0; $('#phSheetTitle').focus({ preventScroll:true }); } // start on the title, not the 0% button
+}
+const phSet = (fn) => { const it = byId.get(phSheetId); if(!it || !guard()) return; commit(() => fn(it)); };
+$('#phSheetIn').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.pct) phSet(it => { it.progress = +b.dataset.pct; });
+  else if(b.dataset.ph === 'done') phSet(it => { it.progress = 100; });
+  else if(b.dataset.ph === 'undone') phSet(it => { it.progress = 0; });
+  else if(b.dataset.ph === 'more'){ const id = phSheetId; phSheetEl.close(); openEditor(id); }
+  else if(b.dataset.ph === 'close') phSheetEl.close();
+});
+$('#phSheetIn').addEventListener('input', e => { if(e.target.id === 'phRange') $('#phPct').textContent = e.target.value + '%'; });
+$('#phSheetIn').addEventListener('change', e => {
+  const v = e.target.value;
+  if(e.target.id === 'phRange') phSet(it => { it.progress = +v; });
+  else if(e.target.id === 'phRes') phSet(it => { it.resource = splitNames(v).join(', ').slice(0, 200); });
+  else if(e.target.id === 'phNotes') phSet(it => { it.notes = v.slice(0, 5000); });
+});
+phSheetEl.addEventListener('close', () => {
+  const id = phSheetId; phSheetId = null;
+  // The list was redrawn while the sheet was open: put focus back on the same task (or the tab) so VoiceOver keeps its place
+  requestAnimationFrame(() => { const t = document.querySelector(`#phBody [data-id="${CSS.escape(id || '')}"]`) || document.querySelector('#phTabs [aria-selected="true"]'); t?.focus({ preventScroll:true }); });
+});
+// Tap the dimmed area above the sheet to close it (checked by position, as iPhone Safari doesn't report taps on the dimmed area itself)
+let phDownAbove = false;
+phSheetEl.addEventListener('pointerdown', e => { phDownAbove = e.clientY < phSheetEl.getBoundingClientRect().top; });
+phSheetEl.addEventListener('pointerup', e => { if(phDownAbove && e.clientY < phSheetEl.getBoundingClientRect().top) phSheetEl.close(); phDownAbove = false; });
+// Top bar
+$('#phOpen').addEventListener('click', () => openFile());
+$('#phSave').addEventListener('click', async () => {
+  if(fileHandle){ await saveFile(); setStatus(); return; } // a file this browser can write to: save into it as usual
+  const zoomNow = { zoom:project.zoom, fitW:project.fitW }; if(phPrevZoom) Object.assign(project, phPrevZoom);
+  const blob = new Blob([projectJson()], { type:'application/json' }); Object.assign(project, zoomNow);
+  if(await deliverFile(blob, fileBase() + '.gantt.json', 'application/json')){ markSaved(); setStatus(); }
+});
+$('#phMore').addEventListener('click', () => openTbMenu($('#phMore'), [
+  { v:'ahead', label:'Look-ahead PDF', hint:'The next 3 weeks, to share', run:phLookAhead },
+  { v:'pdf', label:'Print or PDF…', hint:'Choose the page and dates', run:() => openPrint(true) },
+  { v:'theme', label:'Appearance…', hint:{ auto:'Automatic', light:'Light', dark:'Dark' }[getTheme()], run:() => openTbMenu($('#phMore'), [
+    { v:'auto', label:'Automatic', hint:'Follows your phone', checked:getTheme() === 'auto', run:() => setTheme('auto') },
+    { v:'light', label:'Light', checked:getTheme() === 'light', run:() => setTheme('light') },
+    { v:'dark', label:'Dark', checked:getTheme() === 'dark', run:() => setTheme('dark') } ]) },
+  { v:'full', label:'Full layout', hint:'The iPad and Mac layout, for this visit', run:() => { try { sessionStorage.setItem('ganttPlanner.fullLayout', '1'); } catch(e){} applyPhone(); } },
+  { v:'help', label:'Help', run:() => els.help.showModal() },
+  { v:'lic', label:'Licence…', run:openLicence },
+]));
+async function phLookAhead(){
+  if(!guard() || !project.items.length) return;
+  try { await savePdf({ ...project.print, range:'ahead', weeks:3, orient:'landscape', across:1 }); }
+  catch(e){ alert('Couldn’t make the PDF.\n\n' + (e.message || e)); }
+}
 /* ================= Start ================= */
 load();
 afterChange();
 persist();
+applyPhone();
+
 render();
 startTimers();
 checkLicence();
