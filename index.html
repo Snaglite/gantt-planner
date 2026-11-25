@@ -24,7 +24,7 @@
   --bg:#f5f5f7; --surface:#ffffff; --surface-2:#f7f7f9; --hover:#ececf0;
   --text:#1d1d1f; --muted:#5b5b63; --line:#d6d6dc; --line-soft:#ebebef;
   --accent:#0a62cc; --accent-text:#ffffff; --select:rgba(10,98,204,.11); --zebra:rgba(0,0,0,.028);
-  --hl-yellow:#fff1a8; --hl-green:#d9f3d2; --hl-blue:#d8e8fd; --hl-pink:#fcdce8; --hl-orange:#ffe3c4; --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#d42a63; --baseline:#9a9aa6;
+  --hl-yellow:rgba(255,220,0,.34); --hl-green:rgba(52,199,89,.2); --hl-blue:rgba(10,132,255,.16); --hl-pink:rgba(255,55,120,.16); --hl-orange:rgba(255,149,0,.24); --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#d42a63; --baseline:#9a9aa6;
   --c-blue:#2f6fde; --c-teal:#0f8585; --c-green:#2e8a39; --c-orange:#c25e0c; --c-pink:#c0357a; --c-purple:#6f48c8; --c-phase:#3a3a44;
   --row:2.25rem; --hdr:3.5rem;
 }
@@ -85,8 +85,6 @@ button{font:inherit;color:inherit}
 .toolbar button[aria-pressed="true"],.toolbar button[aria-pressed="true"]:hover:not(:disabled){background:var(--accent);color:var(--accent-text)}
 .toolbar button[data-act="critical"][aria-pressed="true"],.toolbar button[data-act="critical"][aria-pressed="true"]:hover{background:var(--crit);color:#fff}
 .toolbar button[data-act="progline"][aria-pressed="true"],.toolbar button[data-act="progline"][aria-pressed="true"]:hover{background:#d42a63;color:#fff}
-:root[data-theme="dark"] .toolbar button[data-act="progline"][aria-pressed="true"]{color:var(--accent-text)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .toolbar button[data-act="progline"][aria-pressed="true"]{color:var(--accent-text)}}
 #projName{font:inherit;font-weight:650;font-size:1.05em;color:inherit;border:1px solid transparent;background:transparent;padding:.1rem .35rem;margin-left:-.35rem;border-radius:.4rem;width:22rem;max-width:50vw}
 #projName:hover,#projName:focus{border-color:var(--line);background:var(--surface-2)}
 @media (max-width:1400px){ .tools .seg[aria-label="Settings"] span{display:none} .findbox input{width:6rem} }
@@ -119,6 +117,8 @@ button{font:inherit;color:inherit}
 .lpane{flex:none}
 .rpane{flex:1}
 html{touch-action:manipulation}
+/* iPad Safari zooms the whole page into any text box under 16px; keep them at 16px on touch screens */
+@media (pointer:coarse){ input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:max(16px,1em)} }
 @media (pointer:coarse){
   :root{--row:2.6rem}
   .toolbar button,.fmtsel,.findbox,.filtersel{height:2.5rem;min-width:2.5rem}
@@ -283,7 +283,7 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 .trow{position:relative;height:var(--row);border-bottom:1px solid var(--line-soft)}
 .bar{position:absolute;top:22%;bottom:22%;border-radius:.3rem;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 26%,var(--surface));overflow:hidden;cursor:grab;touch-action:none}
 .bar .prog{position:absolute;top:0;bottom:0;left:0;background:var(--c)}
-.lnk{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 2px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);cursor:crosshair;touch-action:none;opacity:0;z-index:2}
+.lnk{position:absolute;top:22%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);cursor:crosshair;touch-action:none;opacity:0;z-index:2}
 .trow:hover .lnk,.trow.sel .lnk,body.linking .lnk{opacity:1}
 .trow.linktarget .bar,.trow.linktarget .ms{outline:2px dashed var(--accent);outline-offset:2px}
 .trow.linkbad{cursor:not-allowed}
@@ -1162,7 +1162,7 @@ function schedule(){
   // The tasks leading up to it inherit the same negative float, but only this one gets the warning.
   for(const it of leaves){
     const v = S.get(it.id);
-    v.short = v.tf < 0 && !(succ.get(it.id) || []).some(({ Y }) => (S.get(Y.id).tf ?? 0) <= v.tf);
+    v.short = v.tf < 0 && (workdays(v.ef, cap(it)) < 0 || !(succ.get(it.id) || []).some(({ Y }) => (S.get(Y.id).tf ?? 0) <= v.tf));
   }
 }
 function normalizeOrder(){
@@ -1568,7 +1568,7 @@ function renderRows(vis){
       if(fw > 4) extra += `<div class="fline" style="left:${fx}px;width:${fw - 2}px" title="Float: ${fv.tf} working day${fv.tf === 1 ? '' : 's'}. Can finish as late as ${esc(fmt(le - 1, fLong))} without delaying anything."></div>`;
     }
     if(it.deadline) extra += `<div class="dline${missedDeadline(it) ? ' late' : ''}" style="left:${(toDay(it.deadline) + 1 - origin) * dayW}px" title="Deadline ${esc(fmt(toDay(it.deadline), fLong))}"></div>`;
-    T += `<div class="trow${sel ? ' sel' : ''}${it.hl ? ' hl-' + it.hl : ''}${project.showBaseline && it.bs ? ' hasbl' : ''}" data-id="${esc(it.id)}">${extra}${bar}${canEdit() ? `<div class="lnk" style="left:${r.ms ? x + 7 : x + Math.max((r.sp.e - r.sp.s) * dayW, 3)}px" title="Drag onto another bar to link them" aria-hidden="true"></div>` : ''}<span class="blabel${fmtCls(it)}" style="left:${lx}px">${esc(it.name)}</span></div>`;
+    T += `<div class="trow${sel ? ' sel' : ''}${it.hl ? ' hl-' + it.hl : ''}${project.showBaseline && it.bs ? ' hasbl' : ''}" data-id="${esc(it.id)}">${extra}${bar}${canEdit() ? `<div class="lnk" style="left:${r.ms ? x + 6 : x + Math.max((r.sp.e - r.sp.s) * dayW, 3)}px" title="Drag onto another bar to link them" aria-hidden="true"></div>` : ''}<span class="blabel${fmtCls(it)}" style="left:${lx}px">${esc(it.name)}</span></div>`;
   }
   if(!project.items.length) L = `<div class="empty welcome">
       <h3>Start your plan</h3>
@@ -1797,8 +1797,17 @@ els.projName.addEventListener('change', () => { const v = els.projName.value.tri
 els.projName.addEventListener('keydown', e => { if(e.key === 'Enter') els.projName.blur(); if(e.key === 'Escape'){ els.projName.value = project.name; els.projName.blur(); } });
 
 /* ================= Scrolling, splitter and column widths ================= */
-els.lpane.addEventListener('scroll', () => { if(els.chart.scrollTop !== els.lpane.scrollTop) els.chart.scrollTop = els.lpane.scrollTop; }, { passive:true });
-els.chart.addEventListener('scroll', () => { if(els.lpane.scrollTop !== els.chart.scrollTop) els.lpane.scrollTop = els.chart.scrollTop; }, { passive:true });
+// Keep the table and chart scrolled together. When one side copies its position to the other, the other side's own
+// scroll event is just an echo of that copy and is ignored; otherwise, mid-flick, the echo would drag the first side
+// back to where it was a moment ago, which made scrolling judder on iPad and trackpads.
+const echo = new Map();
+const syncScroll = (from, to) => {
+  const y = from.scrollTop, e = echo.get(from); echo.delete(from);
+  if(e && Math.abs(e.y - y) < 1 && performance.now() - e.t < 200) return;
+  if(Math.abs(to.scrollTop - y) >= 1){ echo.set(to, { y, t:performance.now() }); to.scrollTop = y; }
+};
+els.lpane.addEventListener('scroll', () => syncScroll(els.lpane, els.chart), { passive:true });
+els.chart.addEventListener('scroll', () => syncScroll(els.chart, els.lpane), { passive:true });
 
 function dragResize(e, onMove, onEnd, cls){
   const target = e.target; target.setPointerCapture(e.pointerId); document.body.classList.add(cls);
@@ -1909,6 +1918,9 @@ els.lhead.addEventListener('dblclick', e => {
 let reorder = null, rowPress = null, swallowClick = false, lastPointer = 'mouse', pressTimer = null, pendingRowMenu = null;
 document.addEventListener('pointerdown', e => { lastPointer = e.pointerType || 'mouse'; }, true);
 const isTouch = () => lastPointer === 'touch' || lastPointer === 'pen';
+// On a touch screen, don't put the cursor in a dialog's first text box: the on-screen keyboard would cover half the dialog
+{ const open = HTMLDialogElement.prototype.showModal;
+  HTMLDialogElement.prototype.showModal = function(){ open.call(this); const a = document.activeElement; if(isTouch() && a && this.contains(a) && a.matches('input:not([type=checkbox]):not([type=radio]),textarea')) a.blur(); }; }
 const dropLine = Object.assign(document.createElement('div'), { className:'drop-line', hidden:true });
 document.body.append(dropLine);
 function startReorder(id){ reorder = { id, target:null }; document.body.classList.add('reordering'); els.tip.hidden = true; }
@@ -2064,13 +2076,18 @@ function startCellEdit(initial = null){
   const target = col === 'name' ? cell.querySelector('.nm') : cell;
   const input = document.createElement('input');
   input.className = 'cell-input'; input.type = 'text'; input.spellcheck = col === 'name' || col === 'notes';
+  if(col !== 'name' && col !== 'notes'){ input.autocomplete = 'off'; input.setAttribute('autocorrect', 'off'); input.setAttribute('autocapitalize', 'off'); }
+  if(col === 'dur' || col === 'pct') input.setAttribute('inputmode', 'numeric');
+  // On a touch screen the calendar is the way to pick a date, so don't cover it with the on-screen keyboard
+  if(['start', 'finish', 'deadline'].includes(col) && isTouch() && !typingWanted) input.setAttribute('inputmode', 'none');
   input.setAttribute('aria-label', (COLS[col]?.label || col) + ' for ' + it.name);
   input.value = initial ?? cellValue(it, col);
   target.textContent = ''; target.append(input);
   cell.classList.add('editing');
   cellEdit = { id:it.id, col, input, done:false };
   input.focus();
-  if(initial === null) input.select(); else input.setSelectionRange(input.value.length, input.value.length);
+  if(input.inputMode === 'none'){} // calendar only: no text selection handles on a touch screen
+  else if(initial === null) input.select(); else input.setSelectionRange(input.value.length, input.value.length);
   input.addEventListener('keydown', e => {
     if(e.key === 'Enter'){ e.preventDefault(); finishCellEdit(true, 'down'); }
     else if(e.key === 'Tab'){ e.preventDefault(); finishCellEdit(true, e.shiftKey ? 'left' : 'right'); }
@@ -2078,23 +2095,27 @@ function startCellEdit(initial = null){
   });
   input.addEventListener('blur', () => finishCellEdit(true));
   if(['start', 'finish', 'deadline'].includes(col)) openDatePop(input, cell, it, col);
-  else if(col === 'res') openNamePop(input, cell, it);
+  else if(col === 'res') openNamePop(input, cell, it, initial !== null);
 }
 /* Pop-ups under a cell while typing: a small calendar for dates, and a list of names for "Assigned to".
    Typing still works as before; the pop-up is just a shortcut. Clicks on it don't take focus from the cell. */
-let cellPop = null, popPickedAt = 0;
-function closeCellPop(){ if(!cellPop) return; cellPop.el.remove(); els.leftBody.removeEventListener('scroll', cellPop.place); cellPop = null; }
+let cellPop = null, popPickedAt = 0, typingWanted = false;
+function closeCellPop(){ if(!cellPop) return; cellPop.el.remove(); els.lpane.removeEventListener('scroll', cellPop.place); window.visualViewport?.removeEventListener('resize', cellPop.onKeyboard); cellPop = null; }
 function showCellPop(el, cell){
   closeCellPop();
   el.classList.add('cellpop'); el.addEventListener('pointerdown', e => e.preventDefault()); el.addEventListener('mousedown', e => e.preventDefault());
   document.body.append(el);
+  // The visible height shrinks when the iPad's on-screen keyboard is up
+  const visibleBottom = () => window.visualViewport ? visualViewport.offsetTop + visualViewport.height : innerHeight;
   const place = () => {
-    const r = cell.getBoundingClientRect(), h = el.offsetHeight, w = el.offsetWidth;
-    const below = r.bottom + 4 + h <= innerHeight || r.top - 4 - h < 0;
+    const r = cell.getBoundingClientRect(), h = el.offsetHeight, w = el.offsetWidth, vb = visibleBottom();
+    const below = r.bottom + 4 + h <= vb || r.top - 4 - h < 0;
     el.style.top = (below ? r.bottom + 4 : r.top - 4 - h) + 'px';
     el.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
   };
-  cellPop = { el, place }; place(); els.leftBody.addEventListener('scroll', place);
+  // If the keyboard covers the cell, scroll the table so the cell sits just above it
+  const onKeyboard = () => { const over = cell.getBoundingClientRect().bottom - (visibleBottom() - 12); if(over > 0) els.lpane.scrollTop += over; place(); };
+  cellPop = { el, place, onKeyboard }; place(); els.lpane.addEventListener('scroll', place, { passive:true }); window.visualViewport?.addEventListener('resize', onKeyboard);
 }
 const fCalMonth = F({ month:'long', year:'numeric' });
 function openDatePop(input, cell, it, col){
@@ -2109,10 +2130,13 @@ function openDatePop(input, cell, it, col){
       g += `<button type="button" data-day="${n}" class="${cls}"${cal.holiday(n) ? ` title="${esc(cal.holiday(n))}"` : ''}>${d}</button>`;
     }
     el.innerHTML = `<div class="calp-head"><button type="button" data-step="-1" aria-label="Previous month">‹</button><span>${esc(fmt(first, fCalMonth))}</span><button type="button" data-step="1" aria-label="Next month">›</button></div>
-      <div class="calp-grid">${g}</div><div class="calp-foot"><button type="button" data-day="${t}">Today</button>${col === 'deadline' ? '<button type="button" data-clear>No deadline</button>' : ''}</div>`;
+      <div class="calp-grid">${g}</div><div class="calp-foot"><button type="button" data-day="${t}">Today</button>${col === 'deadline' ? '<button type="button" data-clear>No deadline</button>' : ''}${input.inputMode === 'none' ? '<button type="button" data-type>Type it</button>' : ''}</div>`;
   };
   el.addEventListener('click', e => {
     const b = e.target.closest('button'); if(!b) return;
+    if(b.hasAttribute('data-type')){ // reopen the cell with the keyboard, to type the date instead (iOS only shows it for a fresh text box)
+      typingWanted = true; finishCellEdit(false); startCellEdit(); typingWanted = false; return;
+    }
     if(b.dataset.step){ vm += +b.dataset.step; if(vm < 0){ vm = 11; vy--; } if(vm > 11){ vm = 0; vy++; } draw(); return; }
     input.value = b.hasAttribute('data-clear') ? '' : fmt(+b.dataset.day, fDMYfull);
     popPickedAt = Date.now(); finishCellEdit(true);
@@ -2121,11 +2145,11 @@ function openDatePop(input, cell, it, col){
   input.addEventListener('input', () => { const d = cur(); if(d !== null){ [vy, vm] = ymd(d); } draw(); });
   draw(); showCellPop(el, cell);
 }
-function openNamePop(input, cell, it){
+function openNamePop(input, cell, it, startedTyping = false){
   const all = [...new Set(project.items.flatMap(x => splitNames(x.resource)))].sort((a, b) => a.localeCompare(b));
   if(!all.length) return; // nobody assigned yet: just type
   const el = document.createElement('div'); el.className = 'namep'; el.setAttribute('role', 'listbox'); el.setAttribute('aria-label', 'People already assigned');
-  let typed = false, hi = -1, shown = [];
+  let typed = startedTyping, hi = -1, shown = [];
   const frag = () => typed ? input.value.split(/[,;]/).pop().trim().toLowerCase() : '';
   const draw = () => {
     const have = typed ? input.value.split(/[,;]/).slice(0, -1).map(n => n.trim().toLowerCase()).filter(Boolean) : []; // names before the last comma
@@ -2266,7 +2290,7 @@ els.tlRows.addEventListener('pointercancel', endDrag);
 // Link the selected rows top to bottom, each one starting when the one above finishes
 function linkSelected(){
   if(!guard()) return;
-  const vis = visibleItems().map(v => v.id), ids = selIds().sort((a, b) => vis.indexOf(a) - vis.indexOf(b));
+  const vis = visibleItems().map(v => v.id), ids = selIds().filter(id => vis.includes(id)).sort((a, b) => vis.indexOf(a) - vis.indexOf(b)); // rows hidden in a closed phase are left out
   if(ids.length < 2){ alert('Select two or more rows first (Shift-click or ⌘-click), then link them.'); return; }
   let skipped = 0;
   commit(() => {
@@ -2280,11 +2304,12 @@ function linkSelected(){
   select(selectedId, { keep:true });
   if(skipped) alert(`${skipped} link${skipped === 1 ? ' was' : 's were'} left out because ${skipped === 1 ? 'it' : 'they'} would make a loop (for example, a phase and a task inside it).`);
 }
-// Remove links between the selected rows; with one row, remove its predecessors
+// Remove links between the selected rows
 function unlinkSelected(){
   if(!guard()) return;
-  const ids = new Set(selIds()); if(!ids.size) return;
-  commit(() => { for(const id of ids){ const it = byId.get(id); if(it) it.deps = ids.size === 1 ? [] : it.deps.filter(d => !ids.has(d.id)); } });
+  const ids = new Set(selIds());
+  if(ids.size < 2){ alert('Select two or more rows first, then remove the links between them. To remove one task’s links, double-click it and change its predecessors.'); return; }
+  commit(() => { for(const id of ids){ const it = byId.get(id); if(it) it.deps = it.deps.filter(d => !ids.has(d.id)); } });
   select(selectedId, { keep:true });
 }
 // Drag from the dot at the end of a bar onto another bar
@@ -2296,9 +2321,11 @@ function linkTargetAt(e){
 els.tlRows.addEventListener('pointerdown', e => {
   const h = e.target.closest('.lnk'); if(!h || e.button !== 0) return;
   e.stopImmediatePropagation(); e.preventDefault();
+  if(cellEdit) finishCellEdit(true); // otherwise the edit box would be left stuck open
+  colMenu.hidden = true; closeTbMenu(); // these normally close on any press, but this press stops here
   if(!guard()) return;
   const row = h.closest('.trow'), box = els.tlRows.getBoundingClientRect();
-  const x0 = h.offsetLeft + 7, y0 = row.offsetTop + row.offsetHeight / 2;
+  const x0 = h.offsetLeft + h.offsetWidth / 2, y0 = row.offsetTop + h.offsetTop + h.offsetHeight / 2;
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('class', 'linkdrag'); els.arrows.append(path);
   linkDrag = { id:row.dataset.id, x0, y0, box, path, over:null };
   h.setPointerCapture(e.pointerId); document.body.classList.add('linking');
@@ -2753,7 +2780,7 @@ function buildPrint(o = project.print, dry = false){
     } else {
       (dw >= 4.4 ? eachMonth : eachWeekMonth)(fa, fb, (x0, x1, y, m) => { const w = wid(x0, x1), mo = dayOf(y, m, 1); hdr += hseg(x0, x1, 0, CH / 2, w > 28 ? fmt(mo, fMonth) : w > 12 ? fmt(mo, fMonthYS) : '', true); });
       if(dw >= 4.4) for(let n = fa; n < fb; n++) hdr += hseg(n, n + 1, CH / 2, CH / 2, String(ymd(n)[2]), false);
-      else for(let n = fa - dow(fa); n < fb; n += 7) hdr += hseg(n, n + 7, CH / 2, CH / 2, dw * 7 >= 11 ? fmt(n) : String(ymd(n)[2]), false);
+      else for(let n = fa - dow(fa); n < fb; n += 7) hdr += hseg(n, n + 7, CH / 2, CH / 2, n < pa ? '' : dw * 7 >= 11 ? fmt(n) : String(ymd(n)[2]), false); // a week cut off at the sheet's edge gets no label: its Monday is on the sheet before
     }
     return hdr + `<line x1="${X(pa)}" y1="${CH / 2}" x2="${X(pb)}" y2="${CH / 2}" stroke="${PC.soft}" stroke-width=".2"/><line x1="${X(pa)}" y1="${CH}" x2="${X(pb)}" y2="${CH}" stroke="${PC.line}" stroke-width=".3"/>`;
   };
