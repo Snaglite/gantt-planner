@@ -157,12 +157,14 @@ html{touch-action:manipulation}
 .twisty-sp{width:1.2rem;flex:none;text-align:center;color:var(--muted);font-size:.75em}
 .zebra .lrow:nth-child(even),.zebra .trow:nth-child(even){background:var(--zebra)}
 .lrow.sel,.trow.sel,.zebra .lrow.sel,.zebra .trow.sel{background:var(--select)}
+#leftBody .lrow.sel,#tlRows .trow.sel{background:var(--select)}
 #leftBody .lrow.hl-yellow,#tlRows .trow.hl-yellow{background:var(--hl-yellow)}
 #leftBody .lrow.hl-green,#tlRows .trow.hl-green{background:var(--hl-green)}
 #leftBody .lrow.hl-blue,#tlRows .trow.hl-blue{background:var(--hl-blue)}
 #leftBody .lrow.hl-pink,#tlRows .trow.hl-pink{background:var(--hl-pink)}
 #leftBody .lrow.hl-orange,#tlRows .trow.hl-orange{background:var(--hl-orange)}
-#leftBody .lrow.sel,#tlRows .trow.sel{background:var(--select)}
+/* A highlighted row keeps its colour when selected; an outline shows the selection instead */
+#leftBody .lrow.sel[class*=" hl-"],#tlRows .trow.sel[class*=" hl-"]{box-shadow:inset 0 0 0 2px var(--accent)}
 .split.compact{--row:1.85rem}.split.roomy{--row:2.75rem}
 .splitrow{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;font-weight:400}
 .splitrow input{width:4.5rem!important}
@@ -240,7 +242,7 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 .calp-grid button{height:2rem;font-variant-numeric:tabular-nums}
 .calp-grid button.other{color:var(--muted);opacity:.6}
 .calp-grid button.nw{color:var(--muted)}
-.calp-grid button.today{box-shadow:inset 0 0 0 1.5px var(--today)}
+.calp-grid button.tdy{box-shadow:inset 0 0 0 1.5px var(--today)}
 .calp-grid button.sel,.calp-grid button.sel:hover{background:var(--accent);color:var(--accent-text);font-weight:700}
 .calp-foot{display:flex;justify-content:space-between;margin-top:.3rem;border-top:1px solid var(--line-soft);padding-top:.3rem}
 .calp-foot button{padding:.3rem .55rem;color:var(--accent)}
@@ -785,7 +787,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
     <p id="helpAutosave"></p>
     <ul>
       <li>Drag a bar to move it. Drag its right-hand end to change how long it takes.</li>
-      <li>Double-click a row or bar to edit it, including its predecessors (FS, SS, FF, SF and lag).</li>
+      <li>Double-click a row or bar to edit it, including its predecessors (FS, SS, FF, SF and lag). Double-click a date or “Assigned to” cell to change just that cell, with a pop-up calendar or list of names.</li>
       <li>A task with predecessors starts as soon as they allow. Typing a start date or dragging the bar fixes it as “Start no earlier than”.</li>
       <li><strong>Critical path</strong> shows in red the tasks with no float. If any of them slips, the finish date slips.</li>
       <li><strong>Float</strong> is how many working days a task can slip without delaying the end of the project.</li>
@@ -1968,6 +1970,7 @@ window.addEventListener('pointercancel', () => { clearTimeout(pressTimer); docum
 window.addEventListener('keydown', e => { if(e.key === 'Escape' && reorder){ rowPress = null; if(drag){ drag = null; } finishReorder(false); } });
 els.leftBody.addEventListener('click', e => {
   if(swallowClick){ swallowClick = false; return; }
+  if(Date.now() - popPickedAt < 600) return; // the second click of a double-click on the calendar or names list
   const tw = e.target.closest('[data-twisty]'); if(tw){ toggleCollapse(tw.dataset.twisty); els.leftBody.focus({ preventScroll:true }); return; }
   const row = e.target.closest('.lrow'); if(!row) return;
   const id = row.dataset.id;
@@ -2079,7 +2082,7 @@ function startCellEdit(initial = null){
 }
 /* Pop-ups under a cell while typing: a small calendar for dates, and a list of names for "Assigned to".
    Typing still works as before; the pop-up is just a shortcut. Clicks on it don't take focus from the cell. */
-let cellPop = null;
+let cellPop = null, popPickedAt = 0;
 function closeCellPop(){ if(!cellPop) return; cellPop.el.remove(); els.leftBody.removeEventListener('scroll', cellPop.place); cellPop = null; }
 function showCellPop(el, cell){
   closeCellPop();
@@ -2102,7 +2105,7 @@ function openDatePop(input, cell, it, col){
     const first = dayOf(vy, vm, 1), start = first - dow(first), sel = cur(), t = todayDay();
     let g = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<span class="wd">${d}</span>`).join('');
     for(let n = start; n < start + 42; n++){
-      const [, m, d] = ymd(n), cls = [m !== vm ? 'other' : '', cal.isWork(n) ? '' : 'nw', n === t ? 'today' : '', n === sel ? 'sel' : ''].filter(Boolean).join(' ');
+      const [, m, d] = ymd(n), cls = [m !== vm ? 'other' : '', cal.isWork(n) ? '' : 'nw', n === t ? 'tdy' : '', n === sel ? 'sel' : ''].filter(Boolean).join(' ');
       g += `<button type="button" data-day="${n}" class="${cls}"${cal.holiday(n) ? ` title="${esc(cal.holiday(n))}"` : ''}>${d}</button>`;
     }
     el.innerHTML = `<div class="calp-head"><button type="button" data-step="-1" aria-label="Previous month">‹</button><span>${esc(fmt(first, fCalMonth))}</span><button type="button" data-step="1" aria-label="Next month">›</button></div>
@@ -2112,7 +2115,7 @@ function openDatePop(input, cell, it, col){
     const b = e.target.closest('button'); if(!b) return;
     if(b.dataset.step){ vm += +b.dataset.step; if(vm < 0){ vm = 11; vy--; } if(vm > 11){ vm = 0; vy++; } draw(); return; }
     input.value = b.hasAttribute('data-clear') ? '' : fmt(+b.dataset.day, fDMYfull);
-    finishCellEdit(true);
+    popPickedAt = Date.now(); finishCellEdit(true);
   });
   // Follow what's typed, so the calendar jumps to that month
   input.addEventListener('input', () => { const d = cur(); if(d !== null){ [vy, vm] = ymd(d); } draw(); });
@@ -2137,7 +2140,7 @@ function openNamePop(input, cell, it){
     else { const parts = input.value.split(/[,;]/); parts[parts.length - 1] = name; input.value = parts.map(x => x.trim()).filter(Boolean).join(', '); }
     finishCellEdit(true);
   };
-  el.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if(b) pick(shown[+b.dataset.i]); });
+  el.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if(b){ popPickedAt = Date.now(); pick(shown[+b.dataset.i]); } });
   input.addEventListener('input', () => { typed = true; hi = -1; draw(); });
   input.addEventListener('keydown', e => {
     if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); e.stopImmediatePropagation(); if(shown.length) hi = hi < 0 ? (e.key === 'ArrowDown' ? 0 : shown.length - 1) : (hi + (e.key === 'ArrowDown' ? 1 : shown.length - 1)) % shown.length; draw(); }
@@ -2197,9 +2200,12 @@ function showCellError(msg){
 
 els.leftBody.addEventListener('dblclick', e => {
   clearTimeout(clickEditTimer);
-  if(e.target.closest('.cell-input')) return;
+  if(e.target.closest('.cell-input') || Date.now() - popPickedAt < 600) return;
   const row = e.target.closest('.lrow'); if(!row || e.target.closest('[data-twisty]')) return;
-  openEditor(row.dataset.id, false, cellColAt(row, e));
+  // Double-clicking a date or "Assigned to" opens that cell with its calendar or names list, not the Details window
+  const col = cellColAt(row, e), it = byId.get(row.dataset.id);
+  if(['start', 'finish', 'deadline', 'res'].includes(col) && canEditCell(it, col) && canEdit()){ selectedCol = col; select(it.id); startCellEdit(); return; }
+  openEditor(row.dataset.id, false, col);
 });
 els.tlRows.addEventListener('dblclick', e => { const row = e.target.closest('.trow'); if(row){ selectedCol = null; openEditor(row.dataset.id); } });
 
