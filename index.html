@@ -408,10 +408,6 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
 }
 .pr-page{position:relative;overflow:hidden;box-sizing:border-box;padding:10mm;break-after:page;page-break-after:always;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#1d1d1f;background:#fff}
 .pr-page:last-child{break-after:auto;page-break-after:auto}
-/* iPad landscape: each landscape page is turned a quarter to fit Safari's upright sheet */
-.pr-rot{position:relative;overflow:hidden;break-after:page;page-break-after:always}
-.pr-rot:last-child{break-after:auto;page-break-after:auto}
-.pr-rot > .pr-page{position:absolute;top:0;left:0;transform-origin:0 0;transform:rotate(90deg) translateY(-100%);break-after:auto;page-break-after:auto}
 .pr-head{display:flex;align-items:center;gap:6mm;border-bottom:.5mm solid #1d1d1f;margin-bottom:2.5mm;padding-bottom:1.5mm}
 .pr-head.right{flex-direction:row-reverse}
 .pr-head img{max-height:14mm;max-width:55mm;object-fit:contain}
@@ -770,7 +766,7 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
       <div class="checks" id="prCols"></div>
     </fieldset>
     </div></div>
-    <p class="note" id="prIpadNote" hidden><strong>On iPad:</strong> leave Safari’s print options on <strong>Portrait</strong>. A landscape chart is turned sideways on the page so it prints landscape; turn the paper to read it.</p>
+    <p class="note" id="prIpadNote" hidden><strong>On iPad:</strong> in Safari’s print options that open next, set <strong>Orientation</strong> to match the one above. Safari remembers your last choice and won’t let the page set it; if they don’t match, the chart prints smaller.</p>
     <p class="note">Closed phases stay closed. With more than one page across, trim the right-hand margin and tape the pages side by side. In the print window, choose the same paper and orientation. If the page shows the file name or web address at the top or bottom, untick “Print headers and footers” (Safari) or “Headers and footers” (Edge and Chrome).</p>
     <div class="actions">
       <button type="button" id="prCancel">Cancel</button>
@@ -2884,16 +2880,18 @@ const PAPER = { A4:[210,297], A3:[297,420], Letter:[215.9,279.4] };
 const IPAD_MARGIN = [16, 30]; // mm taken by iPad Safari's own margins, header and footer (width, height)
 const PC = { blue:'#2f6fde', teal:'#0f8585', green:'#2e8a39', orange:'#c25e0c', pink:'#c0357a', purple:'#6f48c8', phase:'#3a3a44', crit:'#d0213b',
   text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', hl:{ yellow:'#fff1a8', green:'#d9f3d2', blue:'#d8e8fd', pink:'#fcdce8', orange:'#ffe3c4' }, today:'#d42a63', arrow:'#6b6b75', progress:'#d42a63', baseline:'#9a9aa6' };
+/* iPad Safari chooses the paper's orientation itself (it remembers the last one used and can't be told or asked which),
+   ignores the page size we ask for, and adds its own margins, web address and date. So on iPad the pages are built a
+   little smaller and always upright; if Safari's orientation doesn't match, Safari just shrinks the pages to fit. */
 function buildPrint(o = project.print, dry = false){
+  const r = buildPages(o, dry, isIPad() ? 'upright' : null); if(dry) return r;
+  els.printView.innerHTML = r.html; $('#pageStyle').textContent = r.pageCss;
+}
+function buildPages(o, dry, mode){
   const title = o.title || project.name;
   const [pw, ph] = PAPER[o.paper], [Wp, Hp] = o.orient === 'landscape' ? [ph, pw] : [pw, ph];
-  // iPad Safari ignores the page size and margins we ask for and adds its own margins, web address and date,
-  // so build the pages a little smaller there; otherwise each page spills onto an empty extra sheet
-  // iPad Safari always prints on an upright (portrait) sheet unless the user changes it, so a landscape chart is laid out
-  // to fit that sheet turned sideways, then rotated onto it. Turn the paper to read it.
-  const rot = isIPad() && o.orient === 'landscape';
-  const [W0, H0] = rot ? [ph - IPAD_MARGIN[1] - 8, pw - IPAD_MARGIN[0]] // a little extra off the length, or the sheet spills onto a blank page
-    : isIPad() ? [Wp - IPAD_MARGIN[0], Hp - IPAD_MARGIN[1]] : [Wp, Hp];
+  const idp = '';
+  const [W0, H0] = mode === 'upright' ? [Wp - IPAD_MARGIN[0], Hp - IPAD_MARGIN[1]] : [Wp, Hp];
   const W = W0 - 20, H = H0 - 24; // 10 mm margins (drawn by the page itself) plus a little slack so pages never spill
   const TL = o.timeline ? timelineLayout(W - 44) : null, TLH = TL ? 9 + TL.lanes * 4.2 + 5 : 0;
   const HB = 20, CH = 9, FT = o.legend ? 7 : 0, avail = H - HB - CH - FT - 2 - TLH;
@@ -3028,7 +3026,7 @@ function buildPrint(o = project.print, dry = false){
     });
     if(o.arrows){
       const links = linkGeometry(slice, RH, X, 1.8).filter(l => slice[l.pi] && slice[l.i]);
-      svg += links.map(l => { const c = o.critical && l.crit ? PC.crit : PC.arrow; return `<path d="${l.d}" transform="translate(0 ${CH})" fill="none" stroke="${c}" stroke-width="${o.critical && l.crit ? .35 : .22}" marker-end="url(#pa${pg}${o.critical && l.crit ? 'c' : ''})"/>`; }).join('');
+      svg += links.map(l => { const c = o.critical && l.crit ? PC.crit : PC.arrow; return `<path d="${l.d}" transform="translate(0 ${CH})" fill="none" stroke="${c}" stroke-width="${o.critical && l.crit ? .35 : .22}" marker-end="url(#pa${idp}${pg}${o.critical && l.crit ? 'c' : ''})"/>`; }).join('');
     }
     if(o.progress){
       const g = progressPath(slice, X, RH, CH);
@@ -3039,7 +3037,7 @@ function buildPrint(o = project.print, dry = false){
     if(o.today && !o.progress && t >= a && t < b) svg += `<line x1="${X(t) + dw / 2}" y1="${CH}" x2="${X(t) + dw / 2}" y2="${svgH}" stroke="${PC.today}" stroke-width=".35"/>`;
     const mk = (id, c) => `<marker id="${id}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="1.6" markerHeight="1.6" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L8 4L0 8z" fill="${c}"/></marker>`;
     // Each sheet across shows its own slice of the same drawing
-    const svgEl = (pt, k) => `<svg xmlns="http://www.w3.org/2000/svg" width="${pt.w}mm" height="${svgH}mm" viewBox="${pt.off} 0 ${pt.w} ${svgH}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif"><defs>${mk('pa' + pg, PC.arrow)}${mk('pa' + pg + 'c', PC.crit)}<clipPath id="pc${pg}_${k}"><rect x="${pt.off}" width="${pt.w}" height="${svgH}"/></clipPath></defs><g clip-path="url(#pc${pg}_${k})">${pre}${hdrFor(pt.pa, pt.pb)}${svg}</g></svg>`;
+    const svgEl = (pt, k) => `<svg xmlns="http://www.w3.org/2000/svg" width="${pt.w}mm" height="${svgH}mm" viewBox="${pt.off} 0 ${pt.w} ${svgH}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif"><defs>${mk('pa' + idp + pg, PC.arrow)}${mk('pa' + idp + pg + 'c', PC.crit)}<clipPath id="pc${idp}${pg}_${k}"><rect x="${pt.off}" width="${pt.w}" height="${svgH}"/></clipPath></defs><g clip-path="url(#pc${idp}${pg}_${k})">${pre}${hdrFor(pt.pa, pt.pb)}${svg}</g></svg>`;
     const head = `<div class="pr-head${o.logoPos === 'right' ? ' right' : ''}" style="height:${HB - 2}mm">${o.logo ? `<img src="${o.logo}" alt="">` : ''}<div class="pr-titles"><div class="pr-title">${esc(title)}</div>${o.subtitle ? `<div class="pr-sub">${esc(o.subtitle)}</div>` : ''}<div class="pr-meta">${esc(rangeTxt)}__PART__</div></div></div>`;
     const key = o.legend ? `<div class="pr-foot" style="height:${FT - 1}mm">
       <span class="pr-key"><i style="background:${PC.blue}"></i>Task</span>
@@ -3064,14 +3062,11 @@ function buildPrint(o = project.print, dry = false){
     parts.forEach((pt, k) => {
       const part = across > 1 ? ` · Part ${k + 1} of ${across} across: ${fmt(Math.floor(pt.pa), fR)} to ${fmt(Math.max(Math.floor(pt.pa), Math.ceil(pt.pb) - 1), fR)}` : '';
       const showLeft = k === 0 || o.repeatCols;
-      if(rot) html += `<div class="pr-rot" style="width:${H + 20}mm;height:${W + 20}mm">`;
-      html += `<div class="pr-page" style="width:${W + 20}mm;height:${H + 20}mm">${head.replace('__PART__', esc(part))}${tlSvg}<div class="pr-body">${showLeft ? `<div class="pr-left" style="width:${lw}mm">${left}</div>` : ''}${svgEl(pt, k)}</div>${key.replace('__PAGE__', pg * across + k + 1)}</div>${rot ? '</div>' : ''}`;
+      html += `<div class="pr-page" style="width:${W + 20}mm;height:${H + 20}mm">${head.replace('__PART__', esc(part))}${tlSvg}<div class="pr-body">${showLeft ? `<div class="pr-left" style="width:${lw}mm">${left}</div>` : ''}${svgEl(pt, k)}</div>${key.replace('__PAGE__', pg * across + k + 1)}</div>`;
     });
   }
   // No page margin, so browsers have nowhere to add their own headers and footers; the page draws its own 10 mm margin
-  // Exact page size in millimetres: iPad Safari follows this more reliably than "A4 landscape"
-  $('#pageStyle').textContent = rot ? `@page{size:${pw}mm ${ph}mm;margin:0}` : `@page{size:${Wp}mm ${Hp}mm;margin:0}`;
-  els.printView.innerHTML = html;
+  return { html, pageCss:`@page{size:${Wp}mm ${Hp}mm;margin:0}` };
 }
 async function doPrint(){
   buildPrint();
