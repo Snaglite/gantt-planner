@@ -256,6 +256,11 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 .trow{position:relative;height:var(--row);border-bottom:1px solid var(--line-soft)}
 .bar{position:absolute;top:22%;bottom:22%;border-radius:.3rem;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 26%,var(--surface));overflow:hidden;cursor:grab;touch-action:none}
 .bar .prog{position:absolute;top:0;bottom:0;left:0;background:var(--c)}
+.lnk{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 2px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);cursor:crosshair;touch-action:none;opacity:0;z-index:2}
+.trow:hover .lnk,.trow.sel .lnk,body.linking .lnk{opacity:1}
+.trow.linktarget .bar,.trow.linktarget .ms{outline:2px dashed var(--accent);outline-offset:2px}
+.trow.linkbad{cursor:not-allowed}
+svg.arrows .linkdrag{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3}
 .bar .handle{position:absolute;top:0;right:0;bottom:0;width:9px;cursor:ew-resize}
 .bar.phasebar{--c:var(--c-phase);top:36%;bottom:36%;border-radius:2px}
 .bar.split{border:0;background:none;overflow:visible}
@@ -382,6 +387,8 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
     <symbol id="i-indent" viewBox="0 0 24 24"><path d="M21 5H9M21 12H11M21 19H9M3 9l4 3-4 3"/></symbol>
     <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></symbol>
     <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4M3 4v16M21 4v16"/></symbol>
     <symbol id="i-today" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="12" cy="15.5" r="1.6" fill="currentColor" stroke="none"/></symbol>
     <symbol id="i-crit" viewBox="0 0 24 24"><path d="M3 18h5l3-6h5l5-6"/><circle cx="3" cy="18" r="1.5"/><circle cx="21" cy="6" r="1.5"/></symbol>
     <symbol id="i-float" viewBox="0 0 24 24"><rect x="2" y="8" width="10" height="6" rx="1.5"/><path d="M12 15h9M21 12v6"/></symbol>
@@ -444,6 +451,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
       <button data-act="down" data-sel aria-label="Move down" title="Move down (Option ↓)"><svg class="i"><use href="#i-down"/></svg></button>
       <button data-act="outdent" data-sel aria-label="Outdent" title="Outdent: move out of its phase (Option ←)"><svg class="i"><use href="#i-outdent"/></svg></button>
       <button data-act="indent" data-sel aria-label="Indent" title="Indent: put inside the item above (Option →)"><svg class="i"><use href="#i-indent"/></svg></button>
+      <button data-act="link" aria-label="Link in order" title="Link the selected rows in order, each starting when the one above finishes (⌘L). ⇧⌘L removes links between them. You can also drag from the dot at the end of a bar onto another bar."><svg class="i"><use href="#i-link"/></svg></button>
     </div>
     <div class="seg" role="group" aria-label="Undo and redo">
       <button data-act="undo" data-key="Z" aria-label="Undo" title="Undo"><svg class="i"><use href="#i-undo"/></svg></button>
@@ -459,6 +467,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
     <div class="seg" role="group" aria-label="Zoom">
       <button data-zoom="day">Day</button><button data-zoom="week">Week</button><button data-zoom="month">Month</button><button data-zoom="quarter">Quarter</button>
     </div>
+    <button data-act="fit" aria-pressed="false" aria-label="Zoom to fit" title="Zoom to fit the whole project on screen"><svg class="i"><use href="#i-fit"/></svg></button>
     <button data-act="today" aria-label="Today" title="Scroll to today"><svg class="i"><use href="#i-today"/></svg></button>
     <div class="seg" role="group" aria-label="Show">
       <button data-act="critical" aria-pressed="false" title="Critical path: the chain of tasks that sets the finish date"><svg class="i"><use href="#i-crit"/></svg><span>Critical</span></button>
@@ -669,6 +678,9 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
         <label style="flex-basis:100%"><input type="radio" name="prRange" value="all" checked> The whole project</label>
         <label><input type="radio" name="prRange" value="custom"> From</label>
         <input type="date" id="prFrom" aria-label="From" style="width:auto"> <span>to</span> <input type="date" id="prTo" aria-label="To" style="width:auto">
+        <label><input type="radio" name="prRange" value="ahead"> Look-ahead</label>
+        <select id="prWeeks" aria-label="Weeks to look ahead" style="width:auto;min-width:5.5rem"><option value="2">2 weeks</option><option value="3">3 weeks</option><option value="4">4 weeks</option><option value="6">6 weeks</option><option value="8">8 weeks</option><option value="12">12 weeks</option></select>
+        <span>from this Monday, showing only the tasks in those weeks</span>
       </div>
     </fieldset>
     </div><div class="dlg-col">
@@ -775,6 +787,7 @@ const TEXT_COLORS = ['', 'red', 'blue', 'green', 'orange', 'purple'];
 const LINK_LABEL = { FS:'FS', SS:'SS', FF:'FF', SF:'SF' };
 const LINK_TITLE = { FS:'Finish → Start', SS:'Start → Start', FF:'Finish → Finish', SF:'Start → Finish' };
 const ZOOMS = { day:{ dayW:28 }, week:{ dayW:10 }, month:{ dayW:3.5 }, quarter:{ dayW:1.25 } };
+const dayWidth = () => project.fitW || ZOOMS[project.zoom].dayW; // pixels per day: a zoom level, or the "fit" width
 const coarse = () => project.zoom === 'month' || project.zoom === 'quarter';
 const COLS = {
   num:{ label:'#', w:38, num:true, title:'Row number (used in Predecessors)' },
@@ -1144,7 +1157,7 @@ function afterChange(){
 
 /* ================= Loading, saving, undo ================= */
 function defaultCalendar(){ return { region:'england-and-wales', workdays:[true,true,true,true,true,false,false], custom:[], govuk:null }; }
-function defaultPrint(){ return { cols:null, logo:null, logoPos:'left', title:'', subtitle:'', paper:'A4', orient:'landscape', range:'all', from:'', to:'', across:0, repeatCols:false, arrows:true, critical:true, today:true, legend:true }; }
+function defaultPrint(){ return { cols:null, logo:null, logoPos:'left', title:'', subtitle:'', paper:'A4', orient:'landscape', range:'all', weeks:3, from:'', to:'', across:0, repeatCols:false, arrows:true, critical:true, today:true, legend:true }; }
 function normaliseProject(raw){
   if(!raw || typeof raw !== 'object' || !Array.isArray(raw.items)) throw new Error('This file doesn’t look like a Gantt Planner project.');
   const seen = new Set(), t = fromDay(todayDay());
@@ -1187,13 +1200,13 @@ function normaliseProject(raw){
     logo: typeof rp.logo === 'string' && /^data:image\/(png|jpeg|gif|webp|svg\+xml)[;,]/.test(rp.logo) && rp.logo.length < 1500000 ? rp.logo : null,
     logoPos: rp.logoPos === 'right' ? 'right' : 'left', title:String(rp.title ?? '').slice(0, 150), subtitle:String(rp.subtitle ?? '').slice(0, 150),
     paper: ['A4','A3','Letter'].includes(rp.paper) ? rp.paper : dp.paper, orient: rp.orient === 'portrait' ? 'portrait' : 'landscape',
-    range: rp.range === 'custom' ? 'custom' : 'all', from: toDay(rp.from) !== null ? rp.from : '', to: toDay(rp.to) !== null ? rp.to : '',
+    range: ['custom', 'ahead'].includes(rp.range) ? rp.range : 'all', weeks: [2,3,4,6,8,12].includes(+rp.weeks) ? +rp.weeks : 3, from: toDay(rp.from) !== null ? rp.from : '', to: toDay(rp.to) !== null ? rp.to : '',
     across: Number.isInteger(+rp.across) && +rp.across >= 1 && +rp.across <= 20 ? +rp.across : 0, repeatCols: !!rp.repeatCols,
     zebra: rp.zebra !== false, shading: !!rp.shading, progress: !!rp.progress, float: !!rp.float, baseline: !!rp.baseline, timeline: !!rp.timeline, arrows: rp.arrows !== false, critical: rp.critical !== false, today: rp.today !== false, legend: rp.legend !== false,
     cols: Array.isArray(rp.cols) ? [...new Set(['name', ...rp.cols.filter(k => COLS[k])])] : null,
   };
   return { app:'gantt-planner', version:2, name: typeof raw.name === 'string' && raw.name.trim() ? raw.name.slice(0, 120) : 'Untitled project',
-    zoom: ZOOMS[raw.zoom] ? raw.zoom : 'week', showCritical: !!raw.showCritical, leftWidth: Number.isFinite(raw.leftWidth) ? raw.leftWidth : null,
+    zoom: ZOOMS[raw.zoom] ? raw.zoom : 'week', fitW: Number.isFinite(raw.fitW) && raw.fitW > 0 ? Math.min(40, Math.max(0.2, raw.fitW)) : null, showCritical: !!raw.showCritical, leftWidth: Number.isFinite(raw.leftWidth) ? raw.leftWidth : null,
     columns: cols, calendar, print, items, zebra: raw.zebra !== false, shading: !!raw.shading, progressLine: !!raw.progressLine, showFloat: !!raw.showFloat, showBaseline: !!raw.showBaseline, showTimeline: !!raw.showTimeline, baselineDate: toDay(raw.baselineDate) !== null ? raw.baselineDate : '', statusDate: toDay(raw.statusDate) !== null ? raw.statusDate : '', rowSize: ['compact','roomy'].includes(raw.rowSize) ? raw.rowSize : 'normal' };
 }
 function emptyProject(keep){ return normaliseProject({ name:'Untitled project', zoom:keep.zoom, zebra:keep.zebra, shading:keep.shading, rowSize:keep.rowSize, columns:keep.columns, calendar:keep.calendar, print:keep.print, leftWidth:keep.leftWidth, items:[] }); }
@@ -1385,7 +1398,7 @@ function render(){
   applyColumns();
   els.split.classList.toggle('zebra', project.zebra);
   els.split.classList.toggle('compact', project.rowSize === 'compact'); els.split.classList.toggle('roomy', project.rowSize === 'roomy');
-  const dayW = ZOOMS[project.zoom].dayW, t = todayDay(), vis = visibleItems();
+  const dayW = dayWidth(), t = todayDay(), vis = visibleItems();
   let minS = t, maxE = t + 1;
   for(const it of project.items){ const sp = spanOf(it); minS = Math.min(minS, sp.s); maxE = Math.max(maxE, sp.e); }
   let origin = minS - 7, end = maxE + 28;
@@ -1401,7 +1414,8 @@ function render(){
   $('[data-act=timeline]').setAttribute('aria-pressed', String(!!project.showTimeline));
   if(document.activeElement !== els.projName) els.projName.value = project.name;
   document.title = project.name + ' – Gantt Planner';
-  document.querySelectorAll('[data-zoom]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.zoom === project.zoom)));
+  document.querySelectorAll('[data-zoom]').forEach(b => b.setAttribute('aria-pressed', String(!project.fitW && b.dataset.zoom === project.zoom)));
+  $('[data-act=fit]').setAttribute('aria-pressed', String(!!project.fitW));
   $('[data-act=critical]').setAttribute('aria-pressed', String(!!project.showCritical));
   $('[data-act=progline]').setAttribute('aria-pressed', String(!!project.progressLine));
   $('[data-act=floatbars]').setAttribute('aria-pressed', String(!!project.showFloat));
@@ -1524,7 +1538,7 @@ function renderRows(vis){
       if(fw > 4) extra += `<div class="fline" style="left:${fx}px;width:${fw - 2}px" title="Float: ${fv.tf} working day${fv.tf === 1 ? '' : 's'}. Can finish as late as ${esc(fmt(le - 1, fLong))} without delaying anything."></div>`;
     }
     if(it.deadline) extra += `<div class="dline${missedDeadline(it) ? ' late' : ''}" style="left:${(toDay(it.deadline) + 1 - origin) * dayW}px" title="Deadline ${esc(fmt(toDay(it.deadline), fLong))}"></div>`;
-    T += `<div class="trow${sel ? ' sel' : ''}${project.showBaseline && it.bs ? ' hasbl' : ''}" data-id="${esc(it.id)}">${extra}${bar}<span class="blabel${fmtCls(it)}" style="left:${lx}px">${esc(it.name)}</span></div>`;
+    T += `<div class="trow${sel ? ' sel' : ''}${project.showBaseline && it.bs ? ' hasbl' : ''}" data-id="${esc(it.id)}">${extra}${bar}${canEdit() ? `<div class="lnk" style="left:${r.ms ? x + 7 : x + Math.max((r.sp.e - r.sp.s) * dayW, 3)}px" title="Drag onto another bar to link them" aria-hidden="true"></div>` : ''}<span class="blabel${fmtCls(it)}" style="left:${lx}px">${esc(it.name)}</span></div>`;
   }
   if(!project.items.length) L = `<div class="empty welcome">
       <h3>Start your plan</h3>
@@ -1686,10 +1700,19 @@ function outdent(){
   select(selectedId);
 }
 function setZoom(z){
-  if(!ZOOMS[z] || z === project.zoom) return;
+  if(!ZOOMS[z] || (z === project.zoom && !project.fitW)) return;
   const leftDay = view.origin + els.chart.scrollLeft / view.dayW;
-  project.zoom = z; persist(); render();
+  project.zoom = z; project.fitW = null; persist(); render();
   els.chart.scrollLeft = (leftDay - view.origin) * view.dayW;
+}
+// Fit the whole project into the visible chart width. The timescale labels follow the nearest zoom level.
+function zoomToFit(){
+  let s = Infinity, e = -Infinity; for(const it of project.items){ const sp = spanOf(it); s = Math.min(s, sp.s); e = Math.max(e, sp.e); }
+  if(s === Infinity) return;
+  const w = Math.min(40, Math.max(0.2, (els.chart.clientWidth - 160) / (e - s + 4))); // room on the right for the last label
+  project.fitW = +w.toFixed(3); project.zoom = w >= 20 ? 'day' : w >= 8 ? 'week' : w >= 2.5 ? 'month' : 'quarter';
+  persist(); render();
+  els.chart.scrollLeft = Math.max(0, (s - 2 - view.origin) * view.dayW);
 }
 function scrollToStart(){
   let s = Infinity; for(const it of project.items) s = Math.min(s, spanOf(it).s);
@@ -1725,9 +1748,10 @@ const ACTIONS = {
   baseline:() => { if(!project.baselineDate){ if(confirm('There’s no baseline yet. Save one now from the current plan?')) saveBaseline(); return; } project.showBaseline = !project.showBaseline; persist(); render(); },
   timeline:() => { project.showTimeline = !project.showTimeline; persist(); render(); },
   mspxml:() => exportMsProject(),
+  link:linkSelected,
   progline:() => { project.progressLine = !project.progressLine; persist(); render(); },
   floatbars:() => { project.showFloat = !project.showFloat; persist(); render(); },
-  today:scrollToToday, critical:() => { project.showCritical = !project.showCritical; persist(); render(); },
+  today:scrollToToday, fit:zoomToFit, critical:() => { project.showCritical = !project.showCritical; persist(); render(); },
   columns:openColumns, calendar:openCalendar, print:openPrint, csv:exportCsv, help:() => els.help.showModal(),
 };
 document.querySelector('.toolbar').addEventListener('click', e => {
@@ -1809,6 +1833,7 @@ function openRowMenu(id, x, y){
     { v:'copy', label:'Copy', run:() => copyRows() },
     { v:'cut', label:'Cut', run:() => { if(guard() && copyRows()) deleteSelected(); } },
     ...(clip ? [{ v:'paste', label:'Paste below', run:() => pasteRows() }] : []),
+    ...(selIds().length > 1 ? [{ v:'link', label:'Link in order', run:linkSelected }, { v:'unlink', label:'Remove links between these', run:unlinkSelected }] : []),
     { v:'indent', label:'Indent', run:indent },
     { v:'outdent', label:'Outdent', run:outdent },
     { v:'delete', label:selIds().length > 1 ? `Delete ${selIds().length} rows` : 'Delete', run:deleteSelected },
@@ -2131,6 +2156,73 @@ function endDrag(e){
 els.tlRows.addEventListener('pointerup', endDrag);
 els.tlRows.addEventListener('pointercancel', endDrag);
 
+/* ================= Quick linking ================= */
+// Link the selected rows top to bottom, each one starting when the one above finishes
+function linkSelected(){
+  if(!guard()) return;
+  const vis = visibleItems().map(v => v.id), ids = selIds().sort((a, b) => vis.indexOf(a) - vis.indexOf(b));
+  if(ids.length < 2){ alert('Select two or more rows first (Shift-click or ⌘-click), then link them.'); return; }
+  let skipped = 0;
+  commit(() => {
+    for(let i = 1; i < ids.length; i++){
+      const p = byId.get(ids[i - 1]), it = byId.get(ids[i]);
+      if(!p || !it || it.deps.some(d => d.id === p.id)) continue;
+      if(!canDependOn(it, p)){ skipped++; continue; }
+      it.deps.push({ id:p.id, type:'FS', lag:0 });
+    }
+  });
+  select(selectedId, { keep:true });
+  if(skipped) alert(`${skipped} link${skipped === 1 ? ' was' : 's were'} left out because ${skipped === 1 ? 'it' : 'they'} would make a loop (for example, a phase and a task inside it).`);
+}
+// Remove links between the selected rows; with one row, remove its predecessors
+function unlinkSelected(){
+  if(!guard()) return;
+  const ids = new Set(selIds()); if(!ids.size) return;
+  commit(() => { for(const id of ids){ const it = byId.get(id); if(it) it.deps = ids.size === 1 ? [] : it.deps.filter(d => !ids.has(d.id)); } });
+  select(selectedId, { keep:true });
+}
+// Drag from the dot at the end of a bar onto another bar
+let linkDrag = null;
+function linkTargetAt(e){
+  const row = document.elementFromPoint(e.clientX, e.clientY)?.closest('.trow');
+  return row && row.dataset.id !== linkDrag.id ? row : null;
+}
+els.tlRows.addEventListener('pointerdown', e => {
+  const h = e.target.closest('.lnk'); if(!h || e.button !== 0) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  if(!guard()) return;
+  const row = h.closest('.trow'), box = els.tlRows.getBoundingClientRect();
+  const x0 = h.offsetLeft + 7, y0 = row.offsetTop + row.offsetHeight / 2;
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('class', 'linkdrag'); els.arrows.append(path);
+  linkDrag = { id:row.dataset.id, x0, y0, box, path, over:null };
+  h.setPointerCapture(e.pointerId); document.body.classList.add('linking');
+  select(row.dataset.id);
+}, true);
+els.tlRows.addEventListener('pointermove', e => {
+  if(!linkDrag) return;
+  const b = els.tlRows.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top;
+  linkDrag.path.setAttribute('d', `M${linkDrag.x0} ${linkDrag.y0}L${x} ${y}`);
+  const row = linkTargetAt(e);
+  if(row !== linkDrag.over){
+    linkDrag.over?.classList.remove('linktarget', 'linkbad'); linkDrag.over = row;
+    if(row){ const ok = canDependOn(byId.get(row.dataset.id), byId.get(linkDrag.id)); row.classList.add(ok ? 'linktarget' : 'linkbad'); }
+  }
+  if(row){ const it = byId.get(row.dataset.id); showTip(e, `${byId.get(linkDrag.id).name} → ${it.name}`); } else els.tip.hidden = true;
+}, true);
+function endLinkDrag(e){
+  if(!linkDrag) return;
+  const { id, path, over } = linkDrag; linkDrag = null;
+  path.remove(); over?.classList.remove('linktarget', 'linkbad'); document.body.classList.remove('linking'); els.tip.hidden = true;
+  if(e.type !== 'pointerup' || !over) return;
+  const p = byId.get(id), it = byId.get(over.dataset.id);
+  if(!p || !it || it.deps.some(d => d.id === p.id)) return;
+  if(!canDependOn(it, p)){ alert(`“${it.name}” can’t wait for “${p.name}”: it would make a loop.`); return; }
+  commit(() => { it.deps.push({ id:p.id, type:'FS', lag:0 }); });
+  select(it.id);
+}
+els.tlRows.addEventListener('pointerup', endLinkDrag, true);
+els.tlRows.addEventListener('pointercancel', endLinkDrag, true);
+
 function stepSelection(dir){
   const vis = visibleItems(); if(!vis.length) return;
   let i = vis.findIndex(v => v.id === selectedId);
@@ -2147,6 +2239,7 @@ document.addEventListener('keydown', e => {
   if(e.target.closest?.('input,textarea,select')) return;
   if(mod && k === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if(mod && k === 'y'){ e.preventDefault(); redo(); return; }
+  if(mod && k === 'l'){ e.preventDefault(); e.shiftKey ? unlinkSelected() : linkSelected(); return; }
   if(mod && k === 'f'){ e.preventDefault(); $('#findBox').focus(); $('#findBox').select(); return; }
   if(e.target.closest?.('input,textarea,select')) { /* typing in a box: leave copy and paste alone */ }
   else if(mod && k === 'c' && selectedId){ if(copyRows()) e.preventDefault(); return; }
@@ -2423,6 +2516,7 @@ function openPrint(){
   pr('prTitle').value = p.title || project.name; pr('prSub').value = p.subtitle;
   logoDraft = p.logo; showLogo(); pr('prLogoPos').value = p.logoPos;
   pr('prPaper').value = p.paper; pr('prOrient').value = p.orient;
+  pr('prWeeks').value = String(p.weeks);
   pr('prAcross').value = String(p.across); if(pr('prAcross').selectedIndex < 0) pr('prAcross').value = '0';
   pr('prRepeat').checked = p.repeatCols;
   printDlg.querySelector(`input[name=prRange][value=${p.range}]`).checked = true;
@@ -2438,7 +2532,7 @@ function openPrint(){
 function readPrintForm(){
   const o = { logo:logoDraft, logoPos:pr('prLogoPos').value, title:pr('prTitle').value.trim(), subtitle:pr('prSub').value.trim(),
     paper:pr('prPaper').value, orient:pr('prOrient').value, range:printDlg.querySelector('input[name=prRange]:checked').value,
-    from:pr('prFrom').value, to:pr('prTo').value, across:+pr('prAcross').value || 0, repeatCols:pr('prRepeat').checked,
+    from:pr('prFrom').value, to:pr('prTo').value, weeks:+pr('prWeeks').value || 3, across:+pr('prAcross').value || 0, repeatCols:pr('prRepeat').checked,
     baseline:pr('prBase').checked, timeline:pr('prTl').checked, zebra:pr('prZebra').checked, shading:pr('prShade').checked, progress:pr('prProg').checked, float:pr('prFloat').checked, arrows:pr('prArrows').checked, critical:pr('prCrit').checked, today:pr('prToday').checked, legend:pr('prLegend').checked,
     cols:[...pr('prCols').querySelectorAll('input:checked')].map(i => i.value) };
   if(o.cols.join() === visibleCols().map(c => c.key).join()) o.cols = null; // same as the screen: keep following it
@@ -2457,6 +2551,7 @@ printDlg.addEventListener('change', updatePrintHint);
 pr('prLogoPick').addEventListener('click', () => els.logoInput.click());
 pr('prLogoRemove').addEventListener('click', () => { logoDraft = null; showLogo(); });
 for(const id of ['prFrom','prTo']) pr(id).addEventListener('change', () => { printDlg.querySelector('input[name=prRange][value=custom]').checked = true; });
+pr('prWeeks').addEventListener('change', () => { printDlg.querySelector('input[name=prRange][value=ahead]').checked = true; });
 els.logoInput.addEventListener('change', async () => {
   const f = els.logoInput.files[0]; els.logoInput.value = ''; if(!f) return;
   try { logoDraft = await processLogo(f); showLogo(); }
@@ -2490,7 +2585,10 @@ function buildPrint(o = project.print, dry = false){
   const W = W0 - 20, H = H0 - 24; // 10 mm margins (drawn by the page itself) plus a little slack so pages never spill
   const TL = o.timeline ? timelineLayout(W - 44) : null, TLH = TL ? 9 + TL.lanes * 4.2 + 5 : 0;
   const HB = 20, CH = 9, FT = o.legend ? 7 : 0, avail = H - HB - CH - FT - 2 - TLH;
-  const rows = visibleItems(), RH = +Math.min(7.5, Math.max(6, avail / Math.max(1, rows.length))).toFixed(2);
+  // Look-ahead: from the Monday of this week, showing only the tasks (and their phases) that fall in those weeks
+  const ahead = o.range === 'ahead', wa = todayDay() - dow(todayDay()), wb = wa + 7 * (o.weeks || 3);
+  const inWin = it => { const sp = spanOf(it); return sp.s < wb && Math.max(sp.e, sp.s + 1) > wa; };
+  const rows = ahead ? visibleItems().filter(it => hasKids(it) && !it.collapsed ? descendants(it.id).some(d => !hasKids(d) && inWin(d)) : inWin(it)) : visibleItems(), RH = +Math.min(7.5, Math.max(6, avail / Math.max(1, rows.length))).toFixed(2);
   const per = Math.max(1, Math.floor(avail / RH)), pages = Math.max(1, Math.ceil(rows.length / per));
   // Column widths: start from the on-screen widths; if too wide, shrink Task and Notes first, then the rest down to a readable minimum.
   const MINW = { wbs:10, res:18, deadline:17, bstart:17, bfinish:17, bvar:11, num:8, name:28, start:17, finish:17, dur:10.5, pct:10.5, pred:18, float:10, notes:20 };
@@ -2507,9 +2605,10 @@ function buildPrint(o = project.print, dry = false){
   cw = cw.map(w => +w.toFixed(2)); const lw = total();
   const tw = +(W - lw).toFixed(2);
   // Dates: the whole project (with a little room either side) or the custom range
-  const custom = o.range === 'custom' && toDay(o.from) !== null && toDay(o.to) !== null && toDay(o.to) >= toDay(o.from);
+  const custom = ahead || (o.range === 'custom' && toDay(o.from) !== null && toDay(o.to) !== null && toDay(o.to) >= toDay(o.from));
   let a, b;
-  if(custom){ a = toDay(o.from); b = toDay(o.to) + 1; }
+  if(ahead){ a = wa; b = wb; }
+  else if(custom){ a = toDay(o.from); b = toDay(o.to) + 1; }
   else {
     a = Infinity; b = -Infinity; for(const it of project.items){ const sp = spanOf(it); a = Math.min(a, sp.s); b = Math.max(b, sp.e); }
     if(a === Infinity){ a = todayDay(); b = a + 30; }
@@ -2559,7 +2658,7 @@ function buildPrint(o = project.print, dry = false){
   const printed = new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' });
   let pe = -Infinity; for(const it of project.items) pe = Math.max(pe, spanOf(it).e);
   const fR = F({ day:'numeric', month:'short', year:'numeric' });
-  const rangeTxt = o.range === 'custom' ? `${fmt(a, fR)} to ${fmt(b - 1, fR)}` : `${fmt(a + 2, fR)} to ${fmt(Math.max(a + 2, pe - 1), fR)}`;
+  const rangeTxt = ahead ? `${o.weeks}-week look-ahead: ${fmt(a, fR)} to ${fmt(b - 1, fR)}` : custom ? `${fmt(a, fR)} to ${fmt(b - 1, fR)}` : `${fmt(a + 2, fR)} to ${fmt(Math.max(a + 2, pe - 1), fR)}`;
   const colTpl = cw.map(w => w + 'mm').join(' ');
   let html = '', usedBl = false, usedDl = false, usedFl = false;
   for(let pg = 0; pg < pages; pg++){
@@ -3146,7 +3245,7 @@ updateInstallButton();
 $('#keysList').innerHTML = [
   ['↑ ↓ ← →', 'move between cells'], ['type', 'replace the selected cell'], ['F2 or Return', 'change the selected cell'], ['Tab', 'next cell'], ['Esc', 'cancel typing'], ['double-click', 'open all the details'], ['Delete', 'delete the selected rows'],
   [isMac ? 'Option ↑ ↓' : 'Alt+↑ ↓', 'move it up or down'], [isMac ? 'Option → ←' : 'Alt+→ ←', 'indent or outdent'],
-  ['→ ←', 'open or close a phase'], [MOD + 'Z', 'undo'], [MOD + 'C / ' + MOD + 'V', 'copy and paste rows'], [MOD + 'D', 'fill down the selected cells'], [MOD + 'F', 'find'], [MOD + 'S', 'save to a file'], [MOD + 'O', 'open a file'], [MOD + 'P', 'print'],
+  ['→ ←', 'open or close a phase'], [MOD + 'Z', 'undo'], [MOD + 'C / ' + MOD + 'V', 'copy and paste rows'], [MOD + 'D', 'fill down the selected cells'], [MOD + 'L', 'link the selected rows in order'], ['⇧' + MOD + 'L', 'remove links between the selected rows'], [MOD + 'F', 'find'], [MOD + 'S', 'save to a file'], [MOD + 'O', 'open a file'], [MOD + 'P', 'print'],
 ].map(([k, v]) => `<li><kbd>${k}</kbd> ${v}</li>`).join('');
 $('#helpClose').addEventListener('click', () => els.help.close());
 $('#helpLicence').addEventListener('click', () => { els.help.close(); openLicence(); });
