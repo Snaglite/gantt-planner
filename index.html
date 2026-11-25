@@ -24,7 +24,7 @@
   --bg:#f5f5f7; --surface:#ffffff; --surface-2:#f7f7f9; --hover:#ececf0;
   --text:#1d1d1f; --muted:#5b5b63; --line:#d6d6dc; --line-soft:#ebebef;
   --accent:#0a62cc; --accent-text:#ffffff; --select:rgba(10,98,204,.11); --zebra:rgba(0,0,0,.028);
-  --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#d42a63; --baseline:#9a9aa6;
+  --hl-yellow:#fff1a8; --hl-green:#d9f3d2; --hl-blue:#d8e8fd; --hl-pink:#fcdce8; --hl-orange:#ffe3c4; --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#d42a63; --baseline:#9a9aa6;
   --c-blue:#2f6fde; --c-teal:#0f8585; --c-green:#2e8a39; --c-orange:#c25e0c; --c-pink:#c0357a; --c-purple:#6f48c8; --c-phase:#3a3a44;
   --row:2.25rem; --hdr:3.5rem;
 }
@@ -33,7 +33,7 @@
     --bg:#141416; --surface:#1d1d20; --surface-2:#242428; --hover:#2e2e33;
     --text:#f2f2f5; --muted:#a8a8b2; --line:#3a3a41; --line-soft:#2b2b30;
     --accent:#4d94ff; --accent-text:#0b0b0d; --select:rgba(77,148,255,.17); --zebra:rgba(255,255,255,.035);
-    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff6b9b; --baseline:#77778a;
+    --hl-yellow:rgba(255,214,10,.22); --hl-green:rgba(52,199,89,.2); --hl-blue:rgba(10,132,255,.26); --hl-pink:rgba(255,55,120,.22); --hl-orange:rgba(255,149,0,.24); --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff6b9b; --baseline:#77778a;
     --c-blue:#5b8ff0; --c-teal:#2bb0b0; --c-green:#4fb65c; --c-orange:#ee8a3c; --c-pink:#e8619f; --c-purple:#9b7cf0; --c-phase:#c9c9d3;
   }
 }
@@ -42,7 +42,7 @@
     --bg:#141416; --surface:#1d1d20; --surface-2:#242428; --hover:#2e2e33;
     --text:#f2f2f5; --muted:#a8a8b2; --line:#3a3a41; --line-soft:#2b2b30;
     --accent:#4d94ff; --accent-text:#0b0b0d; --select:rgba(77,148,255,.17); --zebra:rgba(255,255,255,.035);
-    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff6b9b; --baseline:#77778a;
+    --hl-yellow:rgba(255,214,10,.22); --hl-green:rgba(52,199,89,.2); --hl-blue:rgba(10,132,255,.26); --hl-pink:rgba(255,55,120,.22); --hl-orange:rgba(255,149,0,.24); --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff6b9b; --baseline:#77778a;
     --c-blue:#5b8ff0; --c-teal:#2bb0b0; --c-green:#4fb65c; --c-orange:#ee8a3c; --c-pink:#e8619f; --c-purple:#9b7cf0; --c-phase:#c9c9d3;
 }
 :root[data-theme="light"]{ color-scheme: light; }
@@ -77,6 +77,7 @@ button{font:inherit;color:inherit}
 .fmtsel:has(select:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
 .fmtsel:hover:not(:has(select:disabled)){background:var(--hover)}
 .fmtsel .fa{font-weight:700;text-decoration:underline 3px;text-decoration-color:var(--fa,var(--text));text-underline-offset:2px}
+.fmtsel .fhl{padding:0 .2rem;border-radius:3px;font-weight:600;background:var(--fh,transparent);box-shadow:inset 0 0 0 1px var(--line)}
 .fmtsel .fbar{width:1rem;height:.55rem;border-radius:2px;background:var(--fb,var(--c-blue))}
 
 .toolbar button.primary{background:var(--accent);color:var(--accent-text);border-color:transparent;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.15)}
@@ -156,6 +157,12 @@ html{touch-action:manipulation}
 .twisty-sp{width:1.2rem;flex:none;text-align:center;color:var(--muted);font-size:.75em}
 .zebra .lrow:nth-child(even),.zebra .trow:nth-child(even){background:var(--zebra)}
 .lrow.sel,.trow.sel,.zebra .lrow.sel,.zebra .trow.sel{background:var(--select)}
+#leftBody .lrow.hl-yellow,#tlRows .trow.hl-yellow{background:var(--hl-yellow)}
+#leftBody .lrow.hl-green,#tlRows .trow.hl-green{background:var(--hl-green)}
+#leftBody .lrow.hl-blue,#tlRows .trow.hl-blue{background:var(--hl-blue)}
+#leftBody .lrow.hl-pink,#tlRows .trow.hl-pink{background:var(--hl-pink)}
+#leftBody .lrow.hl-orange,#tlRows .trow.hl-orange{background:var(--hl-orange)}
+#leftBody .lrow.sel,#tlRows .trow.sel{background:var(--select)}
 .split.compact{--row:1.85rem}.split.roomy{--row:2.75rem}
 .splitrow{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;font-weight:400}
 .splitrow input{width:4.5rem!important}
@@ -223,6 +230,24 @@ body.filtering .filtersel,body.filtering .findbox{border-color:var(--accent);box
 body.reordering,body.reordering *{cursor:grabbing!important}
 .c.editing{padding:0 .15rem;overflow:visible}
 .c.editing,.c.editing *,.cell-input{-webkit-user-select:text;user-select:text;cursor:text}
+.cellpop{position:fixed;z-index:70;padding:.45rem;background:var(--surface);border:1px solid var(--line);border-radius:.6rem;box-shadow:0 10px 30px rgba(0,0,0,.2);font-size:.85rem;color:var(--text)}
+.cellpop button{font:inherit;color:inherit;background:none;border:0;border-radius:.35rem;cursor:pointer}
+.cellpop button:hover{background:var(--hover)}
+.calp-head{display:flex;align-items:center;justify-content:space-between;gap:.3rem;margin-bottom:.25rem;font-weight:600}
+.calp-head button{width:2rem;height:2rem;font-size:1.1rem}
+.calp-grid{display:grid;grid-template-columns:repeat(7,2.1rem);gap:1px;text-align:center}
+.calp-grid .wd{font-size:.8em;color:var(--muted);padding:.15rem 0}
+.calp-grid button{height:2rem;font-variant-numeric:tabular-nums}
+.calp-grid button.other{color:var(--muted);opacity:.6}
+.calp-grid button.nw{color:var(--muted)}
+.calp-grid button.today{box-shadow:inset 0 0 0 1.5px var(--today)}
+.calp-grid button.sel,.calp-grid button.sel:hover{background:var(--accent);color:var(--accent-text);font-weight:700}
+.calp-foot{display:flex;justify-content:space-between;margin-top:.3rem;border-top:1px solid var(--line-soft);padding-top:.3rem}
+.calp-foot button{padding:.3rem .55rem;color:var(--accent)}
+.namep{min-width:12rem;max-width:20rem}
+.namep button{display:block;width:100%;text-align:left;padding:.4rem .55rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.namep button.hi,.namep button.hi:hover{background:var(--accent);color:var(--accent-text)}
+.namep .hint{color:var(--muted);font-size:.85em;padding:.3rem .55rem 0;border-top:1px solid var(--line-soft);margin-top:.25rem}
 .cell-input{font:inherit;color:var(--text);width:100%;min-width:4rem;height:calc(var(--row) - .5rem);padding:0 .35rem;border:2px solid var(--accent);border-radius:.3rem;background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,.12);outline:none}
 .k-name .nm:has(.cell-input){flex:1;min-width:0}
 .tip.err{background:var(--danger);color:#fff}
@@ -461,6 +486,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
       <button data-act="bold" data-sel aria-label="Bold" aria-pressed="false" title="Bold (⌘B). Select several rows with Shift or ⌘"><b>B</b></button>
       <button data-act="italic" data-sel aria-label="Italic" aria-pressed="false" title="Italic (⌘I)"><i style="font-family:Georgia,serif">I</i></button>
       <label class="fmtsel" title="Text colour"><span aria-hidden="true" class="fa">A</span><span class="caret" aria-hidden="true">▾</span><select id="fmtText" data-sel aria-label="Text colour"><option value="">Automatic</option><option value="red">Red</option><option value="blue">Blue</option><option value="green">Green</option><option value="orange">Orange</option><option value="purple">Purple</option></select></label>
+      <label class="fmtsel" title="Highlight the row"><span aria-hidden="true" class="fhl">ab</span><span class="caret" aria-hidden="true">▾</span><select id="fmtHl" data-sel aria-label="Highlight"><option value="">None</option><option value="yellow">Yellow</option><option value="green">Green</option><option value="blue">Blue</option><option value="pink">Pink</option><option value="orange">Orange</option></select></label>
       <label class="fmtsel" title="Bar colour"><span aria-hidden="true" class="fbar"></span><span class="caret" aria-hidden="true">▾</span><select id="fmtBar" data-sel aria-label="Bar colour"><option value="blue">Blue</option><option value="teal">Teal</option><option value="green">Green</option><option value="orange">Orange</option><option value="pink">Pink</option><option value="purple">Purple</option></select></label>
     </div>
     <span class="divider" aria-hidden="true"></span>
@@ -551,6 +577,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
         <label class="checkline" style="align-items:center"><input type="checkbox" id="edBold" style="margin:0"> <strong>Bold</strong></label>
         <label class="checkline" style="align-items:center"><input type="checkbox" id="edItalic" style="margin:0"> <em>Italic</em></label>
         <select id="edTextColor" aria-label="Text colour" style="width:auto;flex:1"><option value="">Automatic</option><option value="red">Red</option><option value="blue">Blue</option><option value="green">Green</option><option value="orange">Orange</option><option value="purple">Purple</option></select>
+        <select id="edHl" aria-label="Highlight" style="width:auto;flex:1"><option value="">No highlight</option><option value="yellow">Yellow</option><option value="green">Green</option><option value="blue">Blue</option><option value="pink">Pink</option><option value="orange">Orange</option></select>
       </div>
     </div>
     </div><div class="ed-col">
@@ -784,6 +811,7 @@ const STORE_KEY = 'ganttPlanner.v2';
 const COLORS = ['blue','teal','green','orange','pink','purple'];
 const LINK_TYPES = ['FS','SS','FF','SF'];
 const TEXT_COLORS = ['', 'red', 'blue', 'green', 'orange', 'purple'];
+const HL_COLORS = ['', 'yellow', 'green', 'blue', 'pink', 'orange']; // row highlight, like a highlighter pen
 const LINK_LABEL = { FS:'FS', SS:'SS', FF:'FF', SF:'SF' };
 const LINK_TITLE = { FS:'Finish → Start', SS:'Start → Start', FF:'Finish → Finish', SF:'Start → Finish' };
 const ZOOMS = { day:{ dayW:28 }, week:{ dayW:10 }, month:{ dayW:3.5 }, quarter:{ dayW:1.25 } };
@@ -1168,7 +1196,7 @@ function normaliseProject(raw){
       deps: Array.isArray(x.deps) ? x.deps.map(d => typeof d === 'string' ? { id:d, type:'FS', lag:0 } : (d && typeof d.id === 'string' ? { id:d.id, type:d.type, lag:d.lag } : null)).filter(Boolean) : [],
       parent: typeof x.parent === 'string' ? x.parent : null,
       color: COLORS.includes(x.color) ? x.color : 'blue', notes: typeof x.notes === 'string' ? x.notes.slice(0, 5000) : '', collapsed: !!x.collapsed,
-      pinned: !!x.pinned, splits: Array.isArray(x.splits) ? x.splits.slice(0, 20).map(q => ({ after:clampInt(q?.after, 0, 3649, 0), gap:clampInt(q?.gap, 1, 999, 1) })).filter(q => q.after > 0) : [], bold: !!x.bold, italic: !!x.italic, textColor: TEXT_COLORS.includes(x.textColor) ? x.textColor : '',
+      pinned: !!x.pinned, splits: Array.isArray(x.splits) ? x.splits.slice(0, 20).map(q => ({ after:clampInt(q?.after, 0, 3649, 0), gap:clampInt(q?.gap, 1, 999, 1) })).filter(q => q.after > 0) : [], bold: !!x.bold, italic: !!x.italic, textColor: TEXT_COLORS.includes(x.textColor) ? x.textColor : '', hl: HL_COLORS.includes(x.hl) ? x.hl : '',
       resource: typeof x.resource === 'string' ? x.resource.slice(0, 200) : '', deadline: toDay(x.deadline) !== null ? x.deadline : '',
       ctype: ['MSO','MFO','SNLT','FNET','FNLT'].includes(x.ctype) && toDay(x.cdate) !== null ? x.ctype : '', cdate: toDay(x.cdate) !== null ? x.cdate : '',
       bs: toDay(x.bs) !== null ? x.bs : '', bf: toDay(x.bf) !== null ? x.bf : '', onTimeline: !!x.onTimeline };
@@ -1511,7 +1539,7 @@ function renderRows(vis){
       const title = c.key === 'notes' && it.notes ? ` title="${esc(it.notes)}"` : '';
       return `<div class="c k-${c.key}${COLS[c.key].num ? ' num' : ''}${extra}" data-col="${c.key}"${title}>${esc(txt)}</div>`;
     }).join('');
-    L += `<div class="lrow ${it.type}${sel ? ' sel' : ''}" id="row-${esc(it.id)}" data-id="${esc(it.id)}" role="option" aria-selected="${sel}" aria-label="${esc(aria)}">${cells}</div>`;
+    L += `<div class="lrow ${it.type}${sel ? ' sel' : ''}${it.hl ? ' hl-' + it.hl : ''}" id="row-${esc(it.id)}" data-id="${esc(it.id)}" role="option" aria-selected="${sel}" aria-label="${esc(aria)}">${cells}</div>`;
     const x = ((r.ms ? drawSpan(it).s : r.sp.s) - origin) * dayW, crit = showCrit && r.crit && !kidsOn ? ' crit' : ''; let bar, lx;
     if(r.ms){ bar = `<div class="ms${crit}" style="left:${x}px;--c:var(--c-${it.color})"></div>`; lx = x + 12; }
     else {
@@ -1538,7 +1566,7 @@ function renderRows(vis){
       if(fw > 4) extra += `<div class="fline" style="left:${fx}px;width:${fw - 2}px" title="Float: ${fv.tf} working day${fv.tf === 1 ? '' : 's'}. Can finish as late as ${esc(fmt(le - 1, fLong))} without delaying anything."></div>`;
     }
     if(it.deadline) extra += `<div class="dline${missedDeadline(it) ? ' late' : ''}" style="left:${(toDay(it.deadline) + 1 - origin) * dayW}px" title="Deadline ${esc(fmt(toDay(it.deadline), fLong))}"></div>`;
-    T += `<div class="trow${sel ? ' sel' : ''}${project.showBaseline && it.bs ? ' hasbl' : ''}" data-id="${esc(it.id)}">${extra}${bar}${canEdit() ? `<div class="lnk" style="left:${r.ms ? x + 7 : x + Math.max((r.sp.e - r.sp.s) * dayW, 3)}px" title="Drag onto another bar to link them" aria-hidden="true"></div>` : ''}<span class="blabel${fmtCls(it)}" style="left:${lx}px">${esc(it.name)}</span></div>`;
+    T += `<div class="trow${sel ? ' sel' : ''}${it.hl ? ' hl-' + it.hl : ''}${project.showBaseline && it.bs ? ' hasbl' : ''}" data-id="${esc(it.id)}">${extra}${bar}${canEdit() ? `<div class="lnk" style="left:${r.ms ? x + 7 : x + Math.max((r.sp.e - r.sp.s) * dayW, 3)}px" title="Drag onto another bar to link them" aria-hidden="true"></div>` : ''}<span class="blabel${fmtCls(it)}" style="left:${lx}px">${esc(it.name)}</span></div>`;
   }
   if(!project.items.length) L = `<div class="empty welcome">
       <h3>Start your plan</h3>
@@ -1607,7 +1635,8 @@ function updateButtons(){
   }
   const ids = selIds(), all = k => ids.length > 0 && ids.every(x => byId.get(x)[k]);
   $('[data-act=bold]').setAttribute('aria-pressed', String(all('bold'))); $('[data-act=italic]').setAttribute('aria-pressed', String(all('italic')));
-  if(sel){ $('#fmtText').value = sel.textColor; $('#fmtBar').value = sel.color; }
+  if(sel){ $('#fmtText').value = sel.textColor; $('#fmtBar').value = sel.color; $('#fmtHl').value = sel.hl || ''; }
+  $('.fmtsel .fhl').style.setProperty('--fh', sel?.hl ? `var(--hl-${sel.hl})` : 'transparent');
   const tc = sel?.textColor; $('.fmtsel .fa').style.setProperty('--fa', tc ? (tc === 'red' ? 'var(--crit)' : `var(--c-${tc})`) : 'var(--text)');
   $('.fmtsel .fbar').style.setProperty('--fb', `var(--c-${sel?.color || 'blue'})`);
   $('[data-act=undo]').disabled = !undoStack.length;
@@ -1658,6 +1687,7 @@ function formatSel(fn){
   extraSel = keepExtra; select(keepPrimary, { keep:true });
 }
 $('#fmtText').addEventListener('change', e => { const v = e.target.value; formatSel(() => ({ textColor:TEXT_COLORS.includes(v) ? v : '' })); });
+$('#fmtHl').addEventListener('change', e => { const v = e.target.value; formatSel(() => ({ hl:HL_COLORS.includes(v) ? v : '' })); });
 $('#fmtBar').addEventListener('change', e => { const v = e.target.value; if(COLORS.includes(v)) formatSel(() => ({ color:v })); });
 function deleteSelected(){
   const id = selectedId, ids = selIds(); if(!byId.has(id)) return;
@@ -2044,10 +2074,80 @@ function startCellEdit(initial = null){
     else if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); finishCellEdit(false); }
   });
   input.addEventListener('blur', () => finishCellEdit(true));
+  if(['start', 'finish', 'deadline'].includes(col)) openDatePop(input, cell, it, col);
+  else if(col === 'res') openNamePop(input, cell, it);
+}
+/* Pop-ups under a cell while typing: a small calendar for dates, and a list of names for "Assigned to".
+   Typing still works as before; the pop-up is just a shortcut. Clicks on it don't take focus from the cell. */
+let cellPop = null;
+function closeCellPop(){ if(!cellPop) return; cellPop.el.remove(); els.leftBody.removeEventListener('scroll', cellPop.place); cellPop = null; }
+function showCellPop(el, cell){
+  closeCellPop();
+  el.classList.add('cellpop'); el.addEventListener('pointerdown', e => e.preventDefault()); el.addEventListener('mousedown', e => e.preventDefault());
+  document.body.append(el);
+  const place = () => {
+    const r = cell.getBoundingClientRect(), h = el.offsetHeight, w = el.offsetWidth;
+    const below = r.bottom + 4 + h <= innerHeight || r.top - 4 - h < 0;
+    el.style.top = (below ? r.bottom + 4 : r.top - 4 - h) + 'px';
+    el.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+  };
+  cellPop = { el, place }; place(); els.leftBody.addEventListener('scroll', place);
+}
+const fCalMonth = F({ month:'long', year:'numeric' });
+function openDatePop(input, cell, it, col){
+  const el = document.createElement('div'); el.setAttribute('aria-hidden', 'true'); // typing the date is the accessible way in
+  const cur = () => parseDate(input.value, spanOf(it).s);
+  let [vy, vm] = ymd(cur() ?? todayDay());
+  const draw = () => {
+    const first = dayOf(vy, vm, 1), start = first - dow(first), sel = cur(), t = todayDay();
+    let g = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<span class="wd">${d}</span>`).join('');
+    for(let n = start; n < start + 42; n++){
+      const [, m, d] = ymd(n), cls = [m !== vm ? 'other' : '', cal.isWork(n) ? '' : 'nw', n === t ? 'today' : '', n === sel ? 'sel' : ''].filter(Boolean).join(' ');
+      g += `<button type="button" data-day="${n}" class="${cls}"${cal.holiday(n) ? ` title="${esc(cal.holiday(n))}"` : ''}>${d}</button>`;
+    }
+    el.innerHTML = `<div class="calp-head"><button type="button" data-step="-1" aria-label="Previous month">‹</button><span>${esc(fmt(first, fCalMonth))}</span><button type="button" data-step="1" aria-label="Next month">›</button></div>
+      <div class="calp-grid">${g}</div><div class="calp-foot"><button type="button" data-day="${t}">Today</button>${col === 'deadline' ? '<button type="button" data-clear>No deadline</button>' : ''}</div>`;
+  };
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.step){ vm += +b.dataset.step; if(vm < 0){ vm = 11; vy--; } if(vm > 11){ vm = 0; vy++; } draw(); return; }
+    input.value = b.hasAttribute('data-clear') ? '' : fmt(+b.dataset.day, fDMYfull);
+    finishCellEdit(true);
+  });
+  // Follow what's typed, so the calendar jumps to that month
+  input.addEventListener('input', () => { const d = cur(); if(d !== null){ [vy, vm] = ymd(d); } draw(); });
+  draw(); showCellPop(el, cell);
+}
+function openNamePop(input, cell, it){
+  const all = [...new Set(project.items.flatMap(x => splitNames(x.resource)))].sort((a, b) => a.localeCompare(b));
+  if(!all.length) return; // nobody assigned yet: just type
+  const el = document.createElement('div'); el.className = 'namep'; el.setAttribute('role', 'listbox'); el.setAttribute('aria-label', 'People already assigned');
+  let typed = false, hi = -1, shown = [];
+  const frag = () => typed ? input.value.split(/[,;]/).pop().trim().toLowerCase() : '';
+  const draw = () => {
+    const have = typed ? input.value.split(/[,;]/).slice(0, -1).map(n => n.trim().toLowerCase()).filter(Boolean) : []; // names before the last comma
+    shown = all.filter(n => !have.includes(n.toLowerCase()) && n.toLowerCase().includes(frag())).slice(0, 10);
+    hi = Math.min(hi, shown.length - 1);
+    el.innerHTML = shown.map((n, i) => `<button type="button" role="option" data-i="${i}" class="${i === hi ? 'hi' : ''}" aria-selected="${i === hi}">${esc(n)}</button>`).join('')
+      + `<div class="hint">${shown.length ? '' : 'No match: keep typing to add a new name. '}Type a comma to add another person.</div>`;
+    cellPop?.place();
+  };
+  const pick = name => {
+    if(!typed) input.value = name;
+    else { const parts = input.value.split(/[,;]/); parts[parts.length - 1] = name; input.value = parts.map(x => x.trim()).filter(Boolean).join(', '); }
+    finishCellEdit(true);
+  };
+  el.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if(b) pick(shown[+b.dataset.i]); });
+  input.addEventListener('input', () => { typed = true; hi = -1; draw(); });
+  input.addEventListener('keydown', e => {
+    if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); e.stopImmediatePropagation(); if(shown.length) hi = hi < 0 ? (e.key === 'ArrowDown' ? 0 : shown.length - 1) : (hi + (e.key === 'ArrowDown' ? 1 : shown.length - 1)) % shown.length; draw(); }
+    else if(e.key === 'Enter' && hi >= 0){ e.preventDefault(); e.stopImmediatePropagation(); pick(shown[hi]); }
+  }, { capture:true });
+  draw(); showCellPop(el, cell);
 }
 function finishCellEdit(save, move = null){
   const ce = cellEdit; if(!ce || ce.done) return;
-  ce.done = true; cellEdit = null;
+  ce.done = true; cellEdit = null; closeCellPop();
   const it = byId.get(ce.id), v = ce.input.value;
   let error = null;
   if(save && it && v !== cellValue(it, ce.col)){
@@ -2299,7 +2399,7 @@ function openEditor(id, isNew = false, focus = null){
   $('#edRes').value = it.resource; $('#edDeadline').value = it.deadline; $('#edOnTl').checked = it.onTimeline;
   $('#edCtype').value = it.pinned ? 'SNET' : it.ctype; $('#edCdate').value = it.pinned ? fromDay(r.sp.s) : it.cdate;
   $('#edCtype').disabled = $('#edCdate').disabled = hasKids(it); updateCdate();
-  $('#edPin').checked = it.pinned; $('#edBold').checked = it.bold; $('#edItalic').checked = it.italic; $('#edTextColor').value = it.textColor;
+  $('#edPin').checked = it.pinned; $('#edBold').checked = it.bold; $('#edItalic').checked = it.italic; $('#edTextColor').value = it.textColor; $('#edHl').value = it.hl || '';
   // List every task; ones that would make a loop are greyed out with the reason
   depCands = project.items.filter(p => p.id !== it.id);
   depBlocked = new Map();
@@ -2390,7 +2490,7 @@ els.editForm.addEventListener('submit', e => {
   const pinned = ctSel === 'SNET' && !!cdSel, ctype = ctSel && ctSel !== 'SNET' && cdSel ? ctSel : '', cdate = ctype ? cdSel : '';
   const resource = $('#edRes').value.trim().slice(0, 200), deadline = toDay($('#edDeadline').value) !== null ? $('#edDeadline').value : '', onTimeline = $('#edOnTl').checked;
   const splits = $('#splitField').hidden ? [] : draftSplits().filter(q => q.after >= 1 && q.after < duration);
-  const bold = $('#edBold').checked, italic = $('#edItalic').checked, textColor = TEXT_COLORS.includes($('#edTextColor').value) ? $('#edTextColor').value : '';
+  const bold = $('#edBold').checked, italic = $('#edItalic').checked, textColor = TEXT_COLORS.includes($('#edTextColor').value) ? $('#edTextColor').value : '', hl = HL_COLORS.includes($('#edHl').value) ? $('#edHl').value : '';
   const merge = editingNew, n = undoStack.length;
   editingNew = false;
   els.editor.close('saved');
@@ -2400,7 +2500,7 @@ els.editForm.addEventListener('submit', e => {
     if(wasLockedPhase && type !== 'phase'){ const sp = spanOf(it); for(const k of kids(id)) k.parent = it.parent; it.start = fromDay(sp.s); it.duration = Math.max(1, workdays(sp.s, sp.e)); }
     if(!(wasLockedPhase && type === 'phase')){ if(start && (startChanged || merge)) it.start = start; if(type !== 'milestone' && (durChanged || merge)) it.duration = duration; }
     if(pinned && !(wasLockedPhase && type === 'phase')) it.start = cdSel;
-    Object.assign(it, { name, type, progress, deps, notes, pinned, ctype, cdate, resource, deadline, onTimeline, splits, bold, italic, textColor, color: COLORS.includes(color) ? color : it.color });
+    Object.assign(it, { name, type, progress, deps, notes, pinned, ctype, cdate, resource, deadline, onTimeline, splits, bold, italic, textColor, hl, color: COLORS.includes(color) ? color : it.color });
   });
   if(merge && undoStack.length > n) undoStack.pop();
   updateButtons();
@@ -2578,7 +2678,7 @@ $('#printForm').addEventListener('submit', async e => {
 });
 const PAPER = { A4:[210,297], A3:[297,420], Letter:[215.9,279.4] };
 const PC = { blue:'#2f6fde', teal:'#0f8585', green:'#2e8a39', orange:'#c25e0c', pink:'#c0357a', purple:'#6f48c8', phase:'#3a3a44', crit:'#d0213b',
-  text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', today:'#d42a63', arrow:'#6b6b75', progress:'#d42a63', baseline:'#9a9aa6' };
+  text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', hl:{ yellow:'#fff1a8', green:'#d9f3d2', blue:'#d8e8fd', pink:'#fcdce8', orange:'#ffe3c4' }, today:'#d42a63', arrow:'#6b6b75', progress:'#d42a63', baseline:'#9a9aa6' };
 function buildPrint(o = project.print, dry = false){
   const title = o.title || project.name;
   const [pw, ph] = PAPER[o.paper], [W0, H0] = o.orient === 'landscape' ? [ph, pw] : [pw, ph];
@@ -2665,11 +2765,11 @@ function buildPrint(o = project.print, dry = false){
     const slice = rows.slice(pg * per, (pg + 1) * per), bodyH = slice.length * RH, svgH = CH + bodyH;
     let left = `<div class="pr-row hd" style="grid-template-columns:${colTpl};height:${CH}mm">` + cols.map((c, ci) => `<div class="${COLS[c.key].num ? 'num' : ''}">${esc(c.key === 'pred' && cw[ci] < 24 ? 'Pred.' : COLS[c.key].label)}</div>`).join('') + '</div>';
     let pre = '', svg = '', labels = ''; // pre sits under the timescale header, svg on top of it
-    slice.forEach((it, i) => { if(o.zebra && i % 2) pre += `<rect x="0" y="${CH + i * RH}" width="${X(b)}" height="${RH}" fill="${PC.zebra}"/>`; });
+    slice.forEach((it, i) => { const f = it.hl ? PC.hl[it.hl] : o.zebra && i % 2 ? PC.zebra : ''; if(f) pre += `<rect x="0" y="${CH + i * RH}" width="${X(b)}" height="${RH}" fill="${f}"/>`; });
     pre += shade.replaceAll('__H__', bodyH);
     slice.forEach((it, i) => {
       const r = rowInfo(it), kidsOn = hasKids(it), crit = o.critical && r.crit && !kidsOn;
-      left += `<div class="pr-row ${it.type}${crit ? ' crit' : ''}${o.zebra && i % 2 ? ' z' : ''}" style="grid-template-columns:${colTpl};height:${RH}mm">` + cols.map(c =>
+      left += `<div class="pr-row ${it.type}${crit ? ' crit' : ''}${o.zebra && i % 2 ? ' z' : ''}" style="grid-template-columns:${colTpl};height:${RH}mm${it.hl ? ';background:' + PC.hl[it.hl] : ''}">` + cols.map(c =>
         c.key === 'name' ? `<div class="k-name" style="padding-left:${1 + depth(it) * 3}mm;${it.bold ? 'font-weight:700;' : ''}${it.italic ? 'font-style:italic;' : ''}${it.textColor && !crit ? 'color:' + PC[it.textColor === 'red' ? 'crit' : it.textColor] : ''}">${r.ms ? '◆ ' : ''}${esc(it.name)}</div>`
           : `<div class="${COLS[c.key].num ? 'num' : ''}">${esc(cellText(c.key, it, r))}</div>`).join('') + '</div>';
       const y = CH + i * RH;
@@ -2712,7 +2812,7 @@ function buildPrint(o = project.print, dry = false){
         }
       }
       const lx = r.ms ? x + 2.4 : Math.max(X(r.sp.e), 0) + 1.2;
-      labels += `<text x="${lx}" y="${y + RH / 2 + .85}" font-size="2.4" fill="${crit ? PC.crit : it.textColor ? PC[it.textColor === 'red' ? 'crit' : it.textColor] : PC.text}"${it.bold ? ' font-weight="700"' : ''}${it.italic ? ' font-style="italic"' : ''} stroke="${o.zebra && i % 2 ? PC.zebra : '#fff'}" stroke-width=".9" stroke-linejoin="round" paint-order="stroke">${esc(it.name)}</text>`;
+      labels += `<text x="${lx}" y="${y + RH / 2 + .85}" font-size="2.4" fill="${crit ? PC.crit : it.textColor ? PC[it.textColor === 'red' ? 'crit' : it.textColor] : PC.text}"${it.bold ? ' font-weight="700"' : ''}${it.italic ? ' font-style="italic"' : ''} stroke="${it.hl ? PC.hl[it.hl] : o.zebra && i % 2 ? PC.zebra : '#fff'}" stroke-width=".9" stroke-linejoin="round" paint-order="stroke">${esc(it.name)}</text>`;
     });
     if(o.arrows){
       const links = linkGeometry(slice, RH, X, 1.8).filter(l => slice[l.pi] && slice[l.i]);
