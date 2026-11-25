@@ -2,6 +2,6 @@
 
 Open the app at https://snaglite.github.io/gantt-planner/
 
-On iPad: open that address in Safari, then tap Share › Add to Home Screen.
+To install it: click **Install app** in the app (Edge or Chrome on Windows), choose File › Add to Dock (Safari on Mac), or tap Share › Add to Home Screen (iPad).
 
 Your projects are kept on your own device. Nothing is sent to this website.

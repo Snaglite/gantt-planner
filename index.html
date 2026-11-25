@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2f6bf0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Gantt Planner">
@@ -201,6 +203,14 @@ body.filtering .filtersel,body.filtering .findbox{border-color:var(--accent);box
 .ctxmenu button small{grid-column:2;color:var(--muted);font-size:.85em}
 .ctxmenu button:hover small,.ctxmenu button:focus-visible small{color:inherit;opacity:.85}
 .ctxmenu .tick{grid-row:1/3;font-weight:700}
+.toolbar button.installbtn{border-color:var(--accent);color:var(--accent);font-weight:600}
+.toolbar button.installbtn:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.inst-head{display:flex;gap:.9rem;align-items:center}
+.inst-head img{border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.18);flex:none}
+.inst-head h2{margin:0 0 .2rem}
+.inst-steps{margin:0;padding-left:1.4rem;display:grid;gap:.6rem;font-weight:400}
+.inst-steps kbd{font-size:.9em}
+.welcome .install-tip{display:flex;gap:.5rem;align-items:center;padding:.6rem .75rem;border:1px solid var(--line);border-radius:.6rem;background:var(--surface-2);margin-bottom:1rem}
 .ctxmenu hr{border:0;border-top:1px solid var(--line-soft);margin:.25rem 0}
 .drop-line{position:fixed;height:3px;margin-top:-1.5px;background:var(--accent);border-radius:2px;pointer-events:none;z-index:50}
 body.reordering,body.reordering *{cursor:grabbing!important}
@@ -211,6 +221,14 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 .tip.err{background:var(--danger);color:#fff}
 .lrow.sel .c.cellsel{box-shadow:inset 0 0 0 2px var(--accent);border-radius:.25rem}
 .empty{padding:1.5rem 1rem;color:var(--muted);white-space:normal}
+.welcome{max-width:26rem;padding:2rem 1.25rem}
+.welcome h3{margin:0 0 .4rem;color:var(--text);font-size:1.15em}
+.welcome p{margin:0 0 1rem;line-height:1.45}
+.welcome-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.wbtn{font:inherit;padding:.5rem .9rem;border-radius:.55rem;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;min-height:2.25rem}
+.wbtn:hover{background:var(--hover)}
+.wbtn.primary{background:var(--accent);color:var(--accent-text);border-color:transparent;font-weight:600}
+.wbtn.primary:hover{filter:brightness(1.08)}
 
 .sheet{width:var(--tlw,600px);min-width:100%}
 .tl-header{position:sticky;top:0;z-index:3;background:var(--surface-2);border-bottom:1px solid var(--line);height:var(--hdr)}
@@ -374,6 +392,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
     <symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
     <symbol id="i-export" viewBox="0 0 24 24"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></symbol>
     <symbol id="i-theme" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 010 17z" fill="currentColor"/></symbol>
+    <symbol id="i-install" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M12 7v7M9 11l3 3 3-3M8 17h8"/></symbol>
     <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .6-1.5 1.2-1.5 2.5"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></symbol>
   </defs>
 </svg>
@@ -399,6 +418,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
       <button data-act="print" data-key="P" title="Print or save as PDF"><svg class="i"><use href="#i-print"/></svg><span>Print…</span></button>
       <button data-act="exportmenu" aria-haspopup="menu" aria-expanded="false" title="Export for a spreadsheet or Microsoft Project"><svg class="i"><use href="#i-export"/></svg><span>Export</span><span class="caret" aria-hidden="true">▾</span></button>
     </div>
+    <button data-act="install" class="installbtn" hidden title="Install Gantt Planner on this device"><svg class="i"><use href="#i-install"/></svg><span>Install app</span></button>
     <button data-act="save" data-key="S" class="primary" title="Save the project to a file"><svg class="i"><use href="#i-save"/></svg><span>Save</span></button>
     <button data-act="thememenu" aria-haspopup="menu" aria-expanded="false" aria-label="Appearance" title="Appearance: automatic, light or dark"><svg class="i"><use href="#i-theme"/></svg></button>
     <button data-act="help" aria-label="Help" title="Help and licence"><svg class="i"><use href="#i-help"/></svg></button>
@@ -666,6 +686,16 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
 </dialog>
 
 <!-- Backups -->
+<!-- Install -->
+<dialog id="installDlg" aria-labelledby="instTitle">
+  <div class="dlg">
+    <div class="inst-head"><img id="instIcon" alt="" width="56" height="56"><div><h2 id="instTitle">Install Gantt Planner</h2><p class="note">Its own icon and window, and it works without an internet connection. Your projects stay on this device.</p></div></div>
+    <ol class="inst-steps" id="instSteps"></ol>
+    <p class="note" id="instNote"></p>
+    <div class="actions"><button type="button" class="primary" id="instClose">Got it</button></div>
+  </div>
+</dialog>
+
 <dialog id="backDlg" aria-labelledby="backTitle">
   <div class="dlg">
     <h2 id="backTitle">Backups</h2>
@@ -988,8 +1018,11 @@ function canDependOn(it, p){
   return !descendants(it.id).some(d => r.has(d.id));
 }
 function sanitizeDeps(){
+  // Check each link only against links already accepted, so one bad link can't cause a good one to be thrown away
+  const original = new Map(project.items.map(it => [it.id, it.deps]));
+  for(const it of project.items) it.deps = [];
   for(const it of project.items){
-    const orig = it.deps, keep = []; it.deps = [];
+    const orig = original.get(it.id) || [], keep = []; it.deps = [];
     for(const d of orig){
       const p = byId.get(d.id);
       if(p && !keep.some(k => k.id === d.id) && canDependOn(it, p)){ keep.push({ id:d.id, type:LINK_TYPES.includes(d.type) ? d.type : 'FS', lag:clampInt(d.lag, -999, 999, 0) }); it.deps = keep.slice(); }
@@ -1006,27 +1039,29 @@ function schedule(){
   // unless its start date is fixed ("don't start before"). A task without predecessors starts on its own date.
   const links = new Map(leaves.map(it => [it.id, linksInto(it).filter(l => l.p !== it)]));
   const fixed = it => (it.ctype === 'MSO' || it.ctype === 'MFO') && it.cdate;
-  const base = it => {
+  // Earliest position from the task's own date or constraint. "Finish" constraints on a milestone mean the end of that day.
+  const baseOffers = (it, offer) => {
     const n = spanN(it), cd = toDay(it.cdate);
-    if(it.ctype === 'MSO' && cd !== null) return nextWork(cd);
-    if(it.ctype === 'MFO' && cd !== null) return n ? startFor(cd + 1, n) : cd;
-    let b = links.get(it.id).length && !it.pinned ? -Infinity : nextWork(toDay(it.start));
-    if(it.ctype === 'FNET' && cd !== null) b = Math.max(b, n ? startFor(cd + 1, n) : cd);
-    return b;
+    if(it.ctype === 'MSO' && cd !== null){ offer(nextWork(cd), false); return; }
+    if(it.ctype === 'MFO' && cd !== null){ offer(n ? startFor(cd + 1, n) : nextWork(cd + 1), !n); return; }
+    if(!links.get(it.id).length || it.pinned) offer(nextWork(toDay(it.start)), false);
+    if(it.ctype === 'FNET' && cd !== null) offer(n ? startFor(cd + 1, n) : nextWork(cd + 1), !n);
   };
   for(let pass = 0; pass < leaves.length + 2; pass++){
     let changed = false;
     for(const it of leaves){
-      const n = spanN(it); let es = base(it);
+      const n = spanN(it); let es = -Infinity, atEnd = false;
+      // The latest constraint wins. On a tie, the start of a day is later than the end of the day before.
+      const offer = (b, end) => { if(b > es || (b === es && !end && atEnd)){ es = b; atEnd = end; } };
+      baseOffers(it, offer);
       if(!fixed(it)) for(const { p, type, lag } of links.get(it.id)){
-        let c;
-        if(type === 'FS') c = nextWork(shiftB(efOf(p), lag));
-        else if(type === 'SS') c = nextWork(shiftB(esOf(p), lag));
-        else { const T = shiftB(type === 'FF' ? efOf(p) : esOf(p), lag); c = nextWork(n ? startFor(T, n) : T); }
-        if(c > es) es = c;
+        if(type === 'FS') offer(nextWork(shiftB(efOf(p), lag)), true);
+        else if(type === 'SS') offer(nextWork(shiftB(esOf(p), lag)), false);
+        else { const T = shiftB(type === 'FF' ? efOf(p) : esOf(p), lag); offer(nextWork(n ? startFor(T, n) : T), type === 'FF'); }
       }
-      const v = S.get(it.id);
-      if(es !== v.es){ v.es = es; v.ef = n ? finishOf(es, n) : es; changed = true; }
+      if(es === -Infinity) es = nextWork(toDay(it.start));
+      const v = S.get(it.id), end = !n && atEnd;
+      if(es !== v.es || end !== !!v.atEnd){ v.es = es; v.ef = n ? finishOf(es, n) : es; v.atEnd = end; changed = true; }
     }
     if(!changed) break;
   }
@@ -1034,7 +1069,9 @@ function schedule(){
   let pf = -Infinity; for(const it of leaves) pf = Math.max(pf, S.get(it.id).ef);
   const succ = new Map();
   for(const Y of leaves) for(const l of links.get(Y.id)){
-    for(const X of hasKids(l.p) ? leafDesc(l.p) : [l.p]){ if(X === Y) continue; if(!succ.has(X.id)) succ.set(X.id, []); succ.get(X.id).push({ Y, type:l.type, lag:l.lag }); }
+    let xs = hasKids(l.p) ? leafDesc(l.p) : [l.p];
+    if(hasKids(l.p) && (l.type === 'SS' || l.type === 'SF')){ const m = Math.min(...xs.map(x => S.get(x.id).es)); xs = xs.filter(x => S.get(x.id).es === m); }
+    for(const X of xs){ if(X === Y) continue; if(!succ.has(X.id)) succ.set(X.id, []); succ.get(X.id).push({ Y, type:l.type, lag:l.lag }); }
   }
   // Deadlines and "no later than" constraints cap the latest finish, so missing them shows as negative float
   const cap = X => {
@@ -1081,7 +1118,7 @@ function afterChange(){
   schedule();
   // Keep the stored start of linked tasks in step with where they've been scheduled,
   // so removing a link later leaves the task where it is instead of jumping back to an old date.
-  for(const it of project.items){ const v = S.get(it.id); if(v && !hasKids(it) && !it.pinned && linksInto(it).length) it.start = fromDay(v.es); }
+  for(const it of project.items){ const v = S.get(it.id); if(v && !hasKids(it) && !it.pinned && linksInto(it).length) it.start = fromDay(it.type === 'milestone' ? msDay(it) : v.es); }
 }
 
 /* ================= Loading, saving, undo ================= */
@@ -1171,7 +1208,7 @@ function load(){
     const raw = localStorage.getItem(STORE_KEY) ?? localStorage.getItem('ganttPlanner.v1');
     if(raw){ const d = JSON.parse(raw); project = normaliseProject(d.project); meta = { lastFileSave:d.meta?.lastFileSave ?? null, dirty:!!d.meta?.dirty }; return; }
   } catch(e){ storageOk = false; }
-  project = demoProject(); meta = { lastFileSave:null, dirty:false };
+  project = normaliseProject({ name:'My project', items:[] }); meta = { lastFileSave:null, dirty:false }; // first open: start blank
 }
 const linkCount = () => project.items.reduce((n, it) => n + it.deps.length, 0);
 function commit(mutator, { undoable = true, view = false, keepLinks = false } = {}){
@@ -1257,7 +1294,7 @@ async function loadProjectFile(file, handle){
   if(report){
     meta.lastFileSave = null; meta.dirty = true; persist();
     // Compare the dates we worked out with the ones Project saved, so any difference is clear straight away
-    let diff = 0; for(const x of report.expected){ const v = S.get(x.id); if(v && (fromDay(v.es) !== x.start)) diff++; }
+    let diff = 0; for(const x of report.expected){ const it = byId.get(x.id), v = S.get(x.id); if(v && it && fromDay(it.type === 'milestone' ? msDay(it) : v.es) !== x.start) diff++; }
     const n = project.items.length;
     alert(`Imported ${n} item${n === 1 ? '' : 's'} from Microsoft Project.\n\n` + (diff ? `${diff} task${diff === 1 ? ' starts' : 's start'} on a different date from Project. This usually comes from UK bank holidays (Calendar…) or settings this app doesn’t have, such as elapsed days or resource levelling.` : 'All task dates match Project.')
       + (report.lagNote ? '\n\nSome links used percentage lags, which aren’t supported, so they were set to no lag.' : '') + '\n\nUse Save to keep it as a Gantt Planner file.');
@@ -1280,7 +1317,7 @@ function exportCsv(){
   const rows = [['#','Name','Type','Phase','Start','Finish','Working days','Progress %','Predecessors','Float (working days)','Critical','Notes']];
   for(const it of project.items){
     const sp = spanOf(it), ms = it.type === 'milestone', pr = progressOf(it), tf = floatOf(it);
-    rows.push([rowNum.get(it.id), it.name, it.type, it.parent ? byId.get(it.parent)?.name ?? '' : '', fromDay(sp.s), fromDay(ms ? sp.s : sp.e - 1),
+    rows.push([rowNum.get(it.id), it.name, it.type, it.parent ? byId.get(it.parent)?.name ?? '' : '', fromDay(ms ? msDay(it) : sp.s), fromDay(ms ? msDay(it) : sp.e - 1),
       ms ? 0 : workdays(sp.s, sp.e), pr ?? '', predText(it), tf ?? '', isCrit(it) ? 'Yes' : '', it.notes]);
   }
   const cell = v => { let s = String(v ?? ''); if(/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
@@ -1372,14 +1409,18 @@ function renderBackground(t){
   if(t >= origin && t < end) h += `<div class="today" title="Today" style="left:${(t - origin + 0.5) * dayW}px"></div>`;
   els.tlBg.innerHTML = h;
 }
+const prevWork = b => { let d = b - 1; for(let i = 0; i < LIMIT && !cal.isWork(d); i++) d--; return d; };
+// A milestone that follows a finish sits at the end of the previous working day (as Project shows it)
+const msDay = it => { const v = S.get(it.id), sp = spanOf(it); return v?.atEnd ? prevWork(sp.s) : sp.s; };
+const drawSpan = it => { if(it.type !== 'milestone') return spanOf(it); const v = S.get(it.id); if(!v?.atEnd) return spanOf(it); const x = msDay(it) + 1; return { s:x, e:x }; };
 function rowInfo(it){
-  const sp = spanOf(it), ms = it.type === 'milestone';
-  return { sp, ms, days:ms ? 0 : hasKids(it) ? workdays(sp.s, sp.e) : durOf(it), last:ms ? sp.s : sp.e - 1, pr:progressOf(it), tf:floatOf(it), crit:isCrit(it) };
+  const sp = spanOf(it), ms = it.type === 'milestone', msd = ms ? msDay(it) : null;
+  return { sp, ms, msd, days:ms ? 0 : hasKids(it) ? workdays(sp.s, sp.e) : durOf(it), last:ms ? msd : sp.e - 1, pr:progressOf(it), tf:floatOf(it), crit:isCrit(it) };
 }
 function cellText(key, it, r){
   switch(key){
     case 'num': return String(rowNum.get(it.id));
-    case 'start': return fmt(r.sp.s, fMed);
+    case 'start': return fmt(r.ms ? r.msd : r.sp.s, fMed);
     case 'finish': return fmt(r.last, fMed);
     case 'dur': return r.ms ? '0' : String(r.days);
     case 'pct': return r.pr == null ? '–' : r.pr + '%';
@@ -1400,7 +1441,7 @@ function renderRows(vis){
   const { origin, dayW } = view, cols = visibleCols(), showCrit = project.showCritical; let L = '', T = '';
   for(const it of vis){
     const r = rowInfo(it), d = depth(it), sel = it.id === selectedId, kidsOn = hasKids(it);
-    const aria = `Row ${rowNum.get(it.id)}, ${it.name}, ${it.type}, ` + (r.ms ? `on ${fmt(r.sp.s, fLong)}` : `${fmt(r.sp.s, fLong)} to ${fmt(r.last, fLong)}, ${r.days} working day${r.days === 1 ? '' : 's'}`)
+    const aria = `Row ${rowNum.get(it.id)}, ${it.name}, ${it.type}, ` + (r.ms ? `on ${fmt(r.msd, fLong)}` : `${fmt(r.sp.s, fLong)} to ${fmt(r.last, fLong)}, ${r.days} working day${r.days === 1 ? '' : 's'}`)
       + (r.pr != null ? `, ${r.pr}% done` : '') + (r.tf != null ? `, float ${r.tf} day${r.tf === 1 ? '' : 's'}` : '') + (r.crit && !kidsOn ? ', critical' : '') + (kidsOn && it.collapsed ? ', collapsed' : '') + (!kidsOn && it.splits?.length ? `, split into ${it.splits.length + 1} parts` : '');
     const cells = cols.map(c => {
       if(c.key === 'name'){
@@ -1415,7 +1456,7 @@ function renderRows(vis){
       return `<div class="c k-${c.key}${COLS[c.key].num ? ' num' : ''}${extra}" data-col="${c.key}"${title}>${esc(txt)}</div>`;
     }).join('');
     L += `<div class="lrow ${it.type}${sel ? ' sel' : ''}" id="row-${esc(it.id)}" data-id="${esc(it.id)}" role="option" aria-selected="${sel}" aria-label="${esc(aria)}">${cells}</div>`;
-    const x = (r.sp.s - origin) * dayW, crit = showCrit && r.crit && !kidsOn ? ' crit' : ''; let bar, lx;
+    const x = ((r.ms ? drawSpan(it).s : r.sp.s) - origin) * dayW, crit = showCrit && r.crit && !kidsOn ? ' crit' : ''; let bar, lx;
     if(r.ms){ bar = `<div class="ms${crit}" style="left:${x}px;--c:var(--c-${it.color})"></div>`; lx = x + 12; }
     else {
       const w = Math.max((r.sp.e - r.sp.s) * dayW, 3), segs = segsOf(it);
@@ -1436,7 +1477,17 @@ function renderRows(vis){
     if(it.deadline) extra += `<div class="dline${missedDeadline(it) ? ' late' : ''}" style="left:${(toDay(it.deadline) + 1 - origin) * dayW}px" title="Deadline ${esc(fmt(toDay(it.deadline), fLong))}"></div>`;
     T += `<div class="trow${sel ? ' sel' : ''}${project.showBaseline && it.bs ? ' hasbl' : ''}" data-id="${esc(it.id)}">${extra}${bar}<span class="blabel${fmtCls(it)}" style="left:${lx}px">${esc(it.name)}</span></div>`;
   }
-  if(!project.items.length) L = `<div class="empty">No tasks yet. Use “+ Task” to add one.</div>`;
+  if(!project.items.length) L = `<div class="empty welcome">
+      <h3>Start your plan</h3>
+      <p>Add tasks, milestones and phases, then link them so the dates work themselves out.</p>
+      <div class="welcome-actions">
+        <button type="button" class="wbtn primary" data-empty="task">Add your first task</button>
+        <button type="button" class="wbtn" data-empty="open">Open a file…</button>
+        <button type="button" class="wbtn" data-empty="example">Try the example</button>
+      </div>
+      ${installable() ? `<div class="install-tip"><span>Use it like a normal app, with its own icon.</span><button type="button" class="wbtn" data-empty="install">Install app</button></div>` : ''}
+      <p class="note">Files from Microsoft Project work too: in Project, choose File › Save As › XML.</p>
+    </div>`;
   else if(!vis.length) L = `<div class="empty">No tasks match this filter. <button type="button" class="linkbtn" id="clearFilterBtn">Show all tasks</button></div>`;
   els.leftBody.innerHTML = L; els.tlRows.innerHTML = T;
   if(extraSel.size) select(selectedId, { keep:true });
@@ -1458,7 +1509,7 @@ function linkGeometry(vis, rowH, X, mOff){
       const p = byId.get(d.id); if(!p) continue;
       let pi = pos.get(p.id);
       if(pi === undefined){ const anc = ancestors(p).find(a => pos.has(a.id)); if(!anc) continue; pi = pos.get(anc.id); }
-      const a = spanOf(p), b = spanOf(it), fromFinish = d.type === 'FS' || d.type === 'FF', toStart = d.type === 'FS' || d.type === 'SS';
+      const a = drawSpan(p), b = drawSpan(it), fromFinish = d.type === 'FS' || d.type === 'FF', toStart = d.type === 'FS' || d.type === 'SS';
       const pm = p.type === 'milestone' ? mOff : 0, sm = it.type === 'milestone' ? mOff : 0;
       const x1 = fromFinish ? X(a.e) + pm : X(a.s) - pm, x2 = toStart ? X(b.s) - sm : X(b.e) + sm;
       out.push({ d:route(x1, pi * rowH + rowH / 2, fromFinish ? 1 : -1, x2, i * rowH + rowH / 2, toStart ? -1 : 1, rowH), crit:isCrit(p) && isCrit(it), pi, i });
@@ -2095,7 +2146,7 @@ function openEditor(id, isNew = false, focus = null){
   $('#edTitle').textContent = (isNew ? 'New ' : 'Edit ') + it.type;
   ed.name.value = it.name;
   els.editForm.querySelector(`input[name=edType][value=${it.type}]`).checked = true;
-  ed.start.value = fromDay(r.sp.s);
+  ed.start.value = fromDay(r.ms ? r.msd : r.sp.s);
   ed.dur.value = it.type === 'milestone' ? 1 : Math.max(1, r.days);
   ed.end.value = fromDay(Math.max(r.sp.s, r.sp.e - 1));
   edInitial = { start:ed.start.value, dur:ed.dur.value };
@@ -2435,7 +2486,7 @@ function buildPrint(){
           : `<div class="${COLS[c.key].num ? 'num' : ''}">${esc(cellText(c.key, it, r))}</div>`).join('') + '</div>';
       const y = CH + i * RH;
       const col = crit && !kidsOn ? PC.crit : kidsOn || it.type === 'phase' ? PC.phase : PC[it.color];
-      const x = X(r.sp.s);
+      const x = X(r.ms ? drawSpan(it).s : r.sp.s);
       if(o.baseline && it.bs && it.bf){
         const bx = X(toDay(it.bs)), bw = Math.max(X(toDay(it.bf) + 1) - bx, .6);
         svg += r.ms ? `<rect x="${bx - .8}" y="${y + RH - 2.4}" width="1.6" height="1.6" transform="rotate(45 ${bx} ${y + RH - 1.6})" fill="${PC.baseline}"/>` : `<rect x="${bx}" y="${y + RH - 2.2}" width="${bw}" height="1" rx=".3" fill="${PC.baseline}"/>`;
@@ -2499,7 +2550,7 @@ function buildPrint(){
       g += `<text x="20" y="${top + 2}" font-size="2.3" text-anchor="end" fill="${PC.muted}">${esc(fmt(TL.a, fMed))}</text><text x="${W - 20}" y="${top + 2}" font-size="2.3" fill="${PC.muted}">${esc(fmt(TL.b - 1, fMed))}</text>`;
       for(const b of TL.bars){ const x0 = 22 + b.x0, w = Math.max(.6, b.x1 - b.x0), y = top + b.lane * LH, fits = w > b.it.name.length * 1.35 + 2, col = hasKids(b.it) ? PC.phase : PC[b.it.color];
         g += `<rect x="${x0}" y="${y}" width="${w}" height="${LH - 1}" rx=".6" fill="${col}"/><text x="${fits ? x0 + 1 : x0 + w + .8}" y="${y + LH / 2 + .3}" font-size="2.2" fill="${fits ? '#fff' : PC.text}">${esc(b.it.name)}</text>`; }
-      for(const m of TL.marks){ const x = 22 + m.x, y = top + TL.lanes * LH + 2.4; g += `<path d="M${x} ${y - 1.3}l1.3 1.3-1.3 1.3-1.3-1.3z" fill="${PC.purple}"/><text x="${x + 2}" y="${y + .8}" font-size="2.2" fill="${PC.muted}">${esc(m.it.name)} · ${esc(fmt(spanOf(m.it).s, fShort))}</text>`; }
+      for(const m of TL.marks){ const x = 22 + m.x, y = top + TL.lanes * LH + 2.4; g += `<path d="M${x} ${y - 1.3}l1.3 1.3-1.3 1.3-1.3-1.3z" fill="${PC.purple}"/><text x="${x + 2}" y="${y + .8}" font-size="2.2" fill="${PC.muted}">${esc(m.it.name)} · ${esc(fmt(msDay(m.it), fShort))}</text>`; }
       tlSvg = `<svg width="${W}mm" height="${TLH}mm" viewBox="0 0 ${W} ${TLH}" style="display:block;margin-bottom:1.5mm" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif">${g}</svg>`;
     }
     html += `<div class="pr-page" style="width:${W + 20}mm;height:${H + 20}mm">${head}${tlSvg}<div class="pr-body"><div class="pr-left" style="width:${lw}mm">${left}</div>${svgEl}</div>${key}</div>`;
@@ -2753,7 +2804,7 @@ function exportMsProject(){
     const r = rowInfo(it), kidsOn = hasKids(it), ms = it.type === 'milestone';
     const ct = it.pinned ? 'SNET' : it.ctype, cd = it.pinned ? fromDay(r.sp.s) : it.cdate;
     s += `<Task><UID>${i + 1}</UID><ID>${i + 1}</ID><Name>${x(it.name)}</Name><Manual>0</Manual><OutlineNumber>${wbsNum.get(it.id)}</OutlineNumber><OutlineLevel>${depth(it) + 1}</OutlineLevel>`;
-    s += `<Summary>${kidsOn ? 1 : 0}</Summary><Milestone>${ms ? 1 : 0}</Milestone><Start>${D(r.sp.s)}</Start><Finish>${ms ? D(r.sp.s) : D(r.last, true)}</Finish>`;
+    s += `<Summary>${kidsOn ? 1 : 0}</Summary><Milestone>${ms ? 1 : 0}</Milestone><Start>${ms ? D(r.msd, !!S.get(it.id)?.atEnd) : D(r.sp.s)}</Start><Finish>${ms ? D(r.msd, !!S.get(it.id)?.atEnd) : D(r.last, true)}</Finish>`;
     s += `<Duration>${H(ms ? 0 : r.days)}</Duration><DurationFormat>7</DurationFormat><PercentComplete>${kidsOn ? r.pr ?? 0 : it.progress}</PercentComplete>`;
     s += `<ConstraintType>${MSP_CON_OUT[ct] ?? 0}</ConstraintType>${ct && cd ? `<ConstraintDate>${D(toDay(cd))}</ConstraintDate>` : ''}`;
     if(it.deadline) s += `<Deadline>${D(toDay(it.deadline), true)}</Deadline>`;
@@ -2868,7 +2919,7 @@ function timelineLayout(width){
   const X = d => (d - a) / Math.max(1, b - a) * width, lanes = [], bars = [], marks = [];
   for(const it of timelineItems()){
     const sp = spanOf(it);
-    if(it.type === 'milestone'){ marks.push({ it, x:X(sp.s) }); continue; }
+    if(it.type === 'milestone'){ marks.push({ it, x:X(drawSpan(it).s) }); continue; }
     const x0 = X(sp.s), x1 = X(sp.e); let lane = lanes.findIndex(end => end <= x0 - 2); if(lane < 0){ lane = lanes.length; lanes.push(0); } lanes[lane] = x1;
     bars.push({ it, x0, x1, lane });
   }
@@ -2886,13 +2937,21 @@ function renderTimeline(){
     svg += `<g class="tl-item" data-id="${esc(g.it.id)}"><rect x="${g.x0}" y="${y}" width="${bw}" height="${LH - 6}" rx="4" class="tl-bar c-${hasKids(g.it) ? 'phase' : g.it.color}"/>`;
     svg += `<text x="${fits ? g.x0 + 6 : g.x1 + 4}" y="${y + (LH - 6) / 2 + 1}" class="tl-label${fits ? ' in' : ''}">${esc(g.it.name)}</text></g>`;
   }
-  for(const m of L.marks){ const y = top + L.lanes * LH + 4; svg += `<g class="tl-item" data-id="${esc(m.it.id)}"><path d="M${m.x} ${y - 6}l6 6-6 6-6-6z" class="tl-ms"/><text x="${m.x > w - 140 ? m.x - 9 : m.x + 9}" y="${y + 4}" class="tl-mlabel"${m.x > w - 140 ? ' text-anchor="end"' : ''}>${esc(m.it.name)} · ${esc(fmt(spanOf(m.it).s, fShort))}</text></g>`; }
+  for(const m of L.marks){ const y = top + L.lanes * LH + 4; svg += `<g class="tl-item" data-id="${esc(m.it.id)}"><path d="M${m.x} ${y - 6}l6 6-6 6-6-6z" class="tl-ms"/><text x="${m.x > w - 140 ? m.x - 9 : m.x + 9}" y="${y + 4}" class="tl-mlabel"${m.x > w - 140 ? ' text-anchor="end"' : ''}>${esc(m.it.name)} · ${esc(fmt(msDay(m.it), fShort))}</text></g>`; }
   if(t >= L.a && t < L.b) svg += `<line x1="${L.X(t + .5)}" y1="${top - 10}" x2="${L.X(t + .5)}" y2="${top + L.lanes * LH + 6}" class="tl-today"/>`;
   el.innerHTML = svg + '</g></svg>';
 }
 
 $('#timeline').addEventListener('click', e => { const g = e.target.closest('.tl-item'); if(!g) return; const id = g.dataset.id; if(!visibleItems().some(v => v.id === id)) clearFilter(); for(const a of ancestors(byId.get(id))) a.collapsed = false; render(); select(id, { scroll:true }); });
-els.leftBody.addEventListener('click', e => { if(e.target.id === 'clearFilterBtn') clearFilter(); }, true);
+els.leftBody.addEventListener('click', e => {
+  if(e.target.id === 'clearFilterBtn') clearFilter();
+  const b = e.target.closest('[data-empty]'); if(!b) return;
+  e.stopPropagation();
+  if(b.dataset.empty === 'task') addItem('task');
+  else if(b.dataset.empty === 'open') openFile();
+  else if(b.dataset.empty === 'install') ACTIONS.install();
+  else if(b.dataset.empty === 'example'){ commit(() => { project = demoProject(); reindex(); }, { view:true }); scrollToStart(); }
+}, true);
 function conText(it){
   if(it.pinned) return 'Start no earlier than ' + fmt(toDay(it.start), fLong);
   const L = { MSO:'Must start on', MFO:'Must finish on', SNLT:'Start no later than', FNET:'Finish no earlier than', FNLT:'Finish no later than' };
@@ -2946,6 +3005,40 @@ Object.assign(ACTIONS, {
   ]); },
 });
 
+/* ================= Installing as an app =================
+   Edge and Chrome offer a real install prompt. Safari installs through its own menus, so we show the steps. */
+const onWeb = /^https?:$/.test(location.protocol);
+const isInstalled = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: window-controls-overlay)').matches || navigator.standalone === true;
+const isIPad = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isSafari = () => /Safari\//.test(navigator.userAgent) && !/Chrome|Chromium|Edg\/|OPR\//.test(navigator.userAgent);
+let installPrompt = null;
+function installable(){ return onWeb && !isInstalled() && (installPrompt || isSafari() || isIPad()); }
+function updateInstallButton(){ $('[data-act=install]').hidden = !installable(); }
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; updateInstallButton(); if(!project.items.length) render(); });
+window.addEventListener('appinstalled', () => { installPrompt = null; updateInstallButton(); });
+if(onWeb && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+function showInstallSteps(){
+  const steps = $('#instSteps'), note = $('#instNote');
+  if(isIPad()){
+    steps.innerHTML = `<li>Tap the <strong>Share</strong> button (the square with an arrow) in Safari’s toolbar.</li><li>Scroll down and tap <strong>Add to Home Screen</strong>.</li><li>Tap <strong>Add</strong>. Gantt Planner appears on your Home Screen.</li>`;
+    note.textContent = 'Open it from the Home Screen from now on. It keeps its own projects, separate from Safari.';
+  } else if(isSafari()){
+    steps.innerHTML = `<li>In the menu bar, choose <strong>File › Add to Dock…</strong></li><li>Click <strong>Add</strong>. Gantt Planner appears in your Dock and in Launchpad.</li>`;
+    note.textContent = 'Open it from the Dock from now on. It keeps its own projects, separate from Safari: use Save and Open to move a project across.';
+  } else {
+    steps.innerHTML = `<li>Click the <strong>install</strong> icon at the right-hand end of the address bar, or open the browser’s <strong>⋯</strong> menu and choose <strong>Apps › Install Gantt Planner</strong>.</li><li>Click <strong>Install</strong>. Gantt Planner gets its own window and a Start menu or Dock icon.</li>`;
+    note.textContent = 'Works in Microsoft Edge and Google Chrome. Firefox can’t install web apps, so use Edge or Chrome for this.';
+  }
+  $('#instIcon').src = $('#appIcon').src;
+  $('#installDlg').showModal();
+}
+ACTIONS.install = async () => {
+  if(installPrompt){ const p = installPrompt; installPrompt = null; p.prompt(); try { await p.userChoice; } catch(e){} updateInstallButton(); render(); return; }
+  showInstallSteps();
+};
+$('#instClose').addEventListener('click', () => $('#installDlg').close());
+updateInstallButton();
+
 /* ================= Help ================= */
 $('#keysList').innerHTML = [
   ['↑ ↓ ← →', 'move between cells'], ['type', 'replace the selected cell'], ['F2 or Return', 'change the selected cell'], ['Tab', 'next cell'], ['Esc', 'cancel typing'], ['double-click', 'open all the details'], ['Delete', 'delete the selected rows'],
@@ -2975,7 +3068,11 @@ render();
 startTimers();
 checkLicence();
 try { navigator.storage?.persist?.(); } catch(e){}
-window.__gantt = { get project(){ return project; }, get S(){ return S; }, ukRules, makeCal, buildPrint, get licence(){ return lic; }, addBackup, checkLicence, loadProjectFile }; // for checking
+window.__gantt = { get project(){ return project; }, get S(){ return S; }, ukRules, makeCal, buildPrint, get licence(){ return lic; }, addBackup, checkLicence, loadProjectFile,
+  // For automated checks: schedule a project without touching the screen or saved data
+  scheduleOnly(raw){ const keep = project; try { project = normaliseProject(JSON.parse(JSON.stringify(raw))); reindex(); afterChange();
+    return { items:JSON.parse(JSON.stringify(project.items)), S:new Map([...S].map(([k, v]) => [k, { ...v }])), rows:project.items.map(it => { const r = rowInfo(it); return { id:it.id, start:cellText('start', it, r), finish:cellText('finish', it, r), days:r.days, tf:r.tf, crit:r.crit }; }), work:(c => d => c.isWork(d))(cal) };
+  } finally { project = keep; reindex(); afterChange(); } } }; // for checking
 })();
 </script>
 </body>

@@ -1,0 +1,18 @@
+{
+  "name": "Gantt Planner",
+  "short_name": "Gantt Planner",
+  "description": "Plan projects with Gantt charts, links, critical path and UK bank holidays.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#f5f5f7",
+  "theme_color": "#2f6bf0",
+  "lang": "en-GB",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
