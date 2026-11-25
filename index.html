@@ -235,6 +235,8 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 .cellpop{position:fixed;z-index:70;padding:.45rem;background:var(--surface);border:1px solid var(--line);border-radius:.6rem;box-shadow:0 10px 30px rgba(0,0,0,.2);font-size:.85rem;color:var(--text)}
 .cellpop button{font:inherit;color:inherit;background:none;border:0;border-radius:.35rem;cursor:pointer}
 .cellpop button:hover{background:var(--hover)}
+.cellpop:has(.calp-grid){touch-action:none} /* let a sideways swipe change month instead of scrolling */
+.calp-grid{overflow:hidden}
 .calp-head{display:flex;align-items:center;justify-content:space-between;gap:.3rem;margin-bottom:.25rem;font-weight:600}
 .calp-head button{width:2rem;height:2rem;font-size:1.1rem}
 .calp-grid{display:grid;grid-template-columns:repeat(7,2.1rem);gap:1px;text-align:center}
@@ -764,6 +766,7 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
       <div class="checks" id="prCols"></div>
     </fieldset>
     </div></div>
+    <p class="note" id="prIpadNote" hidden><strong>On iPad:</strong> in the print options that open next, choose <strong>Landscape</strong> (or Portrait) to match. Safari doesn’t let the page choose it for you.</p>
     <p class="note">Closed phases stay closed. With more than one page across, trim the right-hand margin and tape the pages side by side. In the print window, choose the same paper and orientation. If the page shows the file name or web address at the top or bottom, untick “Print headers and footers” (Safari) or “Headers and footers” (Edge and Chrome).</p>
     <div class="actions">
       <button type="button" id="prCancel">Cancel</button>
@@ -801,6 +804,12 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
       <label for="licKey">Licence key</label>
       <textarea id="licKey" rows="4" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="GP1-…"></textarea>
       <p class="note error" id="licErr" role="alert" hidden></p>
+    </div>
+    <div id="licShow" style="display:grid;gap:.4rem" hidden>
+      <label for="licShowKey">Your licence key</label>
+      <textarea id="licShowKey" rows="4" readonly spellcheck="false"></textarea>
+      <div style="display:flex;align-items:center;gap:.6rem"><button type="button" class="small" id="licCopy">Copy key</button><span class="note" id="licCopied" role="status"></span></div>
+      <p class="note">To use Gantt Planner in another browser or on another device, copy this key and paste it into Licence… there.</p>
     </div>
     <div class="actions">
       <button type="button" class="danger" id="licRemove" hidden>Remove licence</button>
@@ -2268,12 +2277,26 @@ function openDatePop(input, cell, it, col){
     el.innerHTML = `<div class="calp-head"><button type="button" data-step="-1" aria-label="Previous month">‹</button><span>${esc(fmt(first, fCalMonth))}</span><button type="button" data-step="1" aria-label="Next month">›</button></div>
       <div class="calp-grid">${g}</div><div class="calp-foot"><button type="button" data-day="${t}">Today</button>${col === 'deadline' ? '<button type="button" data-clear>No deadline</button>' : ''}${input.inputMode === 'none' ? '<button type="button" data-type>Type it</button>' : ''}</div>`;
   };
+  // Change month with the arrows or by swiping left/right; the days slide across so it's clear which way you went
+  const step = dir => {
+    vm += dir; if(vm < 0){ vm = 11; vy--; } if(vm > 11){ vm = 0; vy++; }
+    draw();
+    if(motionOK()) el.querySelector('.calp-grid').animate([{ transform:`translateX(${dir * 24}px)`, opacity:.3 }, { transform:'none', opacity:1 }], { duration:200, easing:EASE });
+  };
+  let swipe = null, swiped = false;
+  el.addEventListener('pointerdown', e => { swipe = { x:e.clientX, y:e.clientY }; swiped = false; });
+  el.addEventListener('pointerup', e => {
+    if(!swipe) return; const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y; swipe = null;
+    if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5){ swiped = true; step(dx < 0 ? 1 : -1); }
+  });
+  el.addEventListener('pointercancel', () => { swipe = null; });
   el.addEventListener('click', e => {
+    if(swiped){ swiped = false; return; } // the end of a swipe isn't a tap on a day
     const b = e.target.closest('button'); if(!b) return;
     if(b.hasAttribute('data-type')){ // reopen the cell with the keyboard, to type the date instead (iOS only shows it for a fresh text box)
       typingWanted = true; finishCellEdit(false); startCellEdit(); typingWanted = false; return;
     }
-    if(b.dataset.step){ vm += +b.dataset.step; if(vm < 0){ vm = 11; vy--; } if(vm > 11){ vm = 0; vy++; } draw(); return; }
+    if(b.dataset.step){ step(+b.dataset.step); return; }
     input.value = b.hasAttribute('data-clear') ? '' : fmt(+b.dataset.day, fDMYfull);
     popPickedAt = Date.now(); finishCellEdit(true);
   });
@@ -2793,6 +2816,7 @@ function openPrint(){
   logoDraft = p.logo; showLogo(); pr('prLogoPos').value = p.logoPos;
   pr('prPaper').value = p.paper; pr('prOrient').value = p.orient;
   pr('prWeeks').value = String(p.weeks);
+  pr('prIpadNote').hidden = !isIPad();
   pr('prAcross').value = String(p.across); if(pr('prAcross').selectedIndex < 0) pr('prAcross').value = '0';
   pr('prRepeat').checked = p.repeatCols;
   printDlg.querySelector(`input[name=prRange][value=${p.range}]`).checked = true;
@@ -2853,11 +2877,15 @@ $('#printForm').addEventListener('submit', async e => {
   await doPrint();
 });
 const PAPER = { A4:[210,297], A3:[297,420], Letter:[215.9,279.4] };
+const IPAD_MARGIN = [16, 30]; // mm taken by iPad Safari's own margins, header and footer (width, height)
 const PC = { blue:'#2f6fde', teal:'#0f8585', green:'#2e8a39', orange:'#c25e0c', pink:'#c0357a', purple:'#6f48c8', phase:'#3a3a44', crit:'#d0213b',
   text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', hl:{ yellow:'#fff1a8', green:'#d9f3d2', blue:'#d8e8fd', pink:'#fcdce8', orange:'#ffe3c4' }, today:'#d42a63', arrow:'#6b6b75', progress:'#d42a63', baseline:'#9a9aa6' };
 function buildPrint(o = project.print, dry = false){
   const title = o.title || project.name;
-  const [pw, ph] = PAPER[o.paper], [W0, H0] = o.orient === 'landscape' ? [ph, pw] : [pw, ph];
+  const [pw, ph] = PAPER[o.paper], [Wp, Hp] = o.orient === 'landscape' ? [ph, pw] : [pw, ph];
+  // iPad Safari ignores the page size and margins we ask for and adds its own margins, web address and date,
+  // so build the pages a little smaller there; otherwise each page spills onto an empty extra sheet
+  const [W0, H0] = isIPad() ? [Wp - IPAD_MARGIN[0], Hp - IPAD_MARGIN[1]] : [Wp, Hp];
   const W = W0 - 20, H = H0 - 24; // 10 mm margins (drawn by the page itself) plus a little slack so pages never spill
   const TL = o.timeline ? timelineLayout(W - 44) : null, TLH = TL ? 9 + TL.lanes * 4.2 + 5 : 0;
   const HB = 20, CH = 9, FT = o.legend ? 7 : 0, avail = H - HB - CH - FT - 2 - TLH;
@@ -3032,7 +3060,8 @@ function buildPrint(o = project.print, dry = false){
     });
   }
   // No page margin, so browsers have nowhere to add their own headers and footers; the page draws its own 10 mm margin
-  $('#pageStyle').textContent = `@page{size:${o.paper} ${o.orient};margin:0}`;
+  // Exact page size in millimetres: iPad Safari follows this more reliably than "A4 landscape"
+  $('#pageStyle').textContent = `@page{size:${Wp}mm ${Hp}mm;margin:0}`;
   els.printView.innerHTML = html;
 }
 async function doPrint(){
@@ -3040,7 +3069,8 @@ async function doPrint(){
   await Promise.all([...els.printView.querySelectorAll('img')].map(i => i.decode().catch(() => {})));
   window.print();
 }
-window.addEventListener('afterprint', () => { els.printView.innerHTML = ''; });
+// The print layout is left in place after printing (it's hidden on screen and replaced next time). Emptying it on
+// "afterprint" blanked the iPad's print preview, because iPad Safari reports printing as finished before the preview is drawn.
 
 /* ================= Backups ================= */
 const BACKUP_KEY = 'ganttPlanner.backups', BACKUP_MAX = 20;
@@ -3153,6 +3183,7 @@ function openLicence(){
     : lic.state === 'lapsed' ? `The licence for <strong>${esc(lic.name)}</strong> ended on ${esc(fmt(toDay(lic.expires), fLong))}. You can still open, view and save your projects. To edit or print, enter a new licence key.`
     : 'Your 7-day free trial has ended. You can still open, view and save your projects. To edit or print, enter a licence key.';
   $('#licEntry').hidden = licensed; $('#licActivate').hidden = licensed; $('#licRemove').hidden = !licensed;
+  $('#licShow').hidden = !licensed || !lic.key; $('#licShowKey').value = licensed ? lic.key || '' : ''; $('#licCopied').textContent = '';
   $('#licKey').value = ''; $('#licErr').hidden = true;
   licDlg.showModal();
   if(!licensed) $('#licKey').focus();
@@ -3168,6 +3199,13 @@ $('#licForm').addEventListener('submit', async e => {
     lic = { ...l, state:'licensed' };
     refreshLicence(); licDlg.close(); render();
   } catch(x){ err.textContent = x.message; err.hidden = false; }
+});
+// Copy the key so it can be pasted into another browser or device
+$('#licCopy').addEventListener('click', async () => {
+  const t = $('#licShowKey'), done = $('#licCopied');
+  try { await navigator.clipboard.writeText(t.value); }
+  catch(e){ t.focus(); t.select(); try { document.execCommand('copy'); } catch(x){ done.textContent = 'Select the key and copy it.'; return; } }
+  done.textContent = 'Copied';
 });
 $('#licRemove').addEventListener('click', () => {
   if(!confirm('Remove the licence from this browser?\n\nYou’ll need the licence key to add it again.')) return;
