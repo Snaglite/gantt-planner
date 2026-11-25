@@ -408,6 +408,10 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
 }
 .pr-page{position:relative;overflow:hidden;box-sizing:border-box;padding:10mm;break-after:page;page-break-after:always;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#1d1d1f;background:#fff}
 .pr-page:last-child{break-after:auto;page-break-after:auto}
+/* iPad landscape: each landscape page is turned a quarter to fit Safari's upright sheet */
+.pr-rot{position:relative;overflow:hidden;break-after:page;page-break-after:always}
+.pr-rot:last-child{break-after:auto;page-break-after:auto}
+.pr-rot > .pr-page{position:absolute;top:0;left:0;transform-origin:0 0;transform:rotate(90deg) translateY(-100%);break-after:auto;page-break-after:auto}
 .pr-head{display:flex;align-items:center;gap:6mm;border-bottom:.5mm solid #1d1d1f;margin-bottom:2.5mm;padding-bottom:1.5mm}
 .pr-head.right{flex-direction:row-reverse}
 .pr-head img{max-height:14mm;max-width:55mm;object-fit:contain}
@@ -766,7 +770,7 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
       <div class="checks" id="prCols"></div>
     </fieldset>
     </div></div>
-    <p class="note" id="prIpadNote" hidden><strong>On iPad:</strong> in the print options that open next, choose <strong>Landscape</strong> (or Portrait) to match. Safari doesn’t let the page choose it for you.</p>
+    <p class="note" id="prIpadNote" hidden><strong>On iPad:</strong> leave Safari’s print options on <strong>Portrait</strong>. A landscape chart is turned sideways on the page so it prints landscape; turn the paper to read it.</p>
     <p class="note">Closed phases stay closed. With more than one page across, trim the right-hand margin and tape the pages side by side. In the print window, choose the same paper and orientation. If the page shows the file name or web address at the top or bottom, untick “Print headers and footers” (Safari) or “Headers and footers” (Edge and Chrome).</p>
     <div class="actions">
       <button type="button" id="prCancel">Cancel</button>
@@ -2885,7 +2889,11 @@ function buildPrint(o = project.print, dry = false){
   const [pw, ph] = PAPER[o.paper], [Wp, Hp] = o.orient === 'landscape' ? [ph, pw] : [pw, ph];
   // iPad Safari ignores the page size and margins we ask for and adds its own margins, web address and date,
   // so build the pages a little smaller there; otherwise each page spills onto an empty extra sheet
-  const [W0, H0] = isIPad() ? [Wp - IPAD_MARGIN[0], Hp - IPAD_MARGIN[1]] : [Wp, Hp];
+  // iPad Safari always prints on an upright (portrait) sheet unless the user changes it, so a landscape chart is laid out
+  // to fit that sheet turned sideways, then rotated onto it. Turn the paper to read it.
+  const rot = isIPad() && o.orient === 'landscape';
+  const [W0, H0] = rot ? [ph - IPAD_MARGIN[1] - 8, pw - IPAD_MARGIN[0]] // a little extra off the length, or the sheet spills onto a blank page
+    : isIPad() ? [Wp - IPAD_MARGIN[0], Hp - IPAD_MARGIN[1]] : [Wp, Hp];
   const W = W0 - 20, H = H0 - 24; // 10 mm margins (drawn by the page itself) plus a little slack so pages never spill
   const TL = o.timeline ? timelineLayout(W - 44) : null, TLH = TL ? 9 + TL.lanes * 4.2 + 5 : 0;
   const HB = 20, CH = 9, FT = o.legend ? 7 : 0, avail = H - HB - CH - FT - 2 - TLH;
@@ -3056,12 +3064,13 @@ function buildPrint(o = project.print, dry = false){
     parts.forEach((pt, k) => {
       const part = across > 1 ? ` · Part ${k + 1} of ${across} across: ${fmt(Math.floor(pt.pa), fR)} to ${fmt(Math.max(Math.floor(pt.pa), Math.ceil(pt.pb) - 1), fR)}` : '';
       const showLeft = k === 0 || o.repeatCols;
-      html += `<div class="pr-page" style="width:${W + 20}mm;height:${H + 20}mm">${head.replace('__PART__', esc(part))}${tlSvg}<div class="pr-body">${showLeft ? `<div class="pr-left" style="width:${lw}mm">${left}</div>` : ''}${svgEl(pt, k)}</div>${key.replace('__PAGE__', pg * across + k + 1)}</div>`;
+      if(rot) html += `<div class="pr-rot" style="width:${H + 20}mm;height:${W + 20}mm">`;
+      html += `<div class="pr-page" style="width:${W + 20}mm;height:${H + 20}mm">${head.replace('__PART__', esc(part))}${tlSvg}<div class="pr-body">${showLeft ? `<div class="pr-left" style="width:${lw}mm">${left}</div>` : ''}${svgEl(pt, k)}</div>${key.replace('__PAGE__', pg * across + k + 1)}</div>${rot ? '</div>' : ''}`;
     });
   }
   // No page margin, so browsers have nowhere to add their own headers and footers; the page draws its own 10 mm margin
   // Exact page size in millimetres: iPad Safari follows this more reliably than "A4 landscape"
-  $('#pageStyle').textContent = `@page{size:${Wp}mm ${Hp}mm;margin:0}`;
+  $('#pageStyle').textContent = rot ? `@page{size:${pw}mm ${ph}mm;margin:0}` : `@page{size:${Wp}mm ${Hp}mm;margin:0}`;
   els.printView.innerHTML = html;
 }
 async function doPrint(){
