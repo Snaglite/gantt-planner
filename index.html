@@ -24,7 +24,7 @@
   --bg:#f5f5f7; --surface:#ffffff; --surface-2:#f7f7f9; --hover:#ececf0;
   --text:#1d1d1f; --muted:#5b5b63; --line:#d6d6dc; --line-soft:#ebebef;
   --accent:#0a62cc; --accent-text:#ffffff; --select:rgba(10,98,204,.11); --zebra:rgba(0,0,0,.028);
-  --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#d9480f; --baseline:#9a9aa6;
+  --nonwork:rgba(0,0,0,.04); --holiday:rgba(214,42,99,.09); --today:#d42a63; --arrow:#6b6b75; --danger:#c4252c; --crit:#d0213b; --progress:#0a58ca; --baseline:#9a9aa6;
   --c-blue:#2f6fde; --c-teal:#0f8585; --c-green:#2e8a39; --c-orange:#c25e0c; --c-pink:#c0357a; --c-purple:#6f48c8; --c-phase:#3a3a44;
   --row:2.25rem; --hdr:3.5rem;
 }
@@ -33,7 +33,7 @@
     --bg:#141416; --surface:#1d1d20; --surface-2:#242428; --hover:#2e2e33;
     --text:#f2f2f5; --muted:#a8a8b2; --line:#3a3a41; --line-soft:#2b2b30;
     --accent:#4d94ff; --accent-text:#0b0b0d; --select:rgba(77,148,255,.17); --zebra:rgba(255,255,255,.035);
-    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff922b; --baseline:#77778a;
+    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#5aa9ff; --baseline:#77778a;
     --c-blue:#5b8ff0; --c-teal:#2bb0b0; --c-green:#4fb65c; --c-orange:#ee8a3c; --c-pink:#e8619f; --c-purple:#9b7cf0; --c-phase:#c9c9d3;
   }
 }
@@ -42,7 +42,7 @@
     --bg:#141416; --surface:#1d1d20; --surface-2:#242428; --hover:#2e2e33;
     --text:#f2f2f5; --muted:#a8a8b2; --line:#3a3a41; --line-soft:#2b2b30;
     --accent:#4d94ff; --accent-text:#0b0b0d; --select:rgba(77,148,255,.17); --zebra:rgba(255,255,255,.035);
-    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#ff922b; --baseline:#77778a;
+    --nonwork:rgba(255,255,255,.04); --holiday:rgba(255,107,155,.12); --today:#ff6b9b; --arrow:#9c9ca8; --danger:#ff6b6b; --crit:#ff5468; --progress:#5aa9ff; --baseline:#77778a;
     --c-blue:#5b8ff0; --c-teal:#2bb0b0; --c-green:#4fb65c; --c-orange:#ee8a3c; --c-pink:#e8619f; --c-purple:#9b7cf0; --c-phase:#c9c9d3;
 }
 :root[data-theme="light"]{ color-scheme: light; }
@@ -84,6 +84,8 @@ button{font:inherit;color:inherit}
 .toolbar button[aria-pressed="true"],.toolbar button[aria-pressed="true"]:hover:not(:disabled){background:var(--accent);color:var(--accent-text)}
 .toolbar button[data-act="critical"][aria-pressed="true"],.toolbar button[data-act="critical"][aria-pressed="true"]:hover{background:var(--crit);color:#fff}
 .toolbar button[data-act="progline"][aria-pressed="true"],.toolbar button[data-act="progline"][aria-pressed="true"]:hover{background:var(--progress);color:#fff}
+:root[data-theme="dark"] .toolbar button[data-act="progline"][aria-pressed="true"]{color:var(--accent-text)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .toolbar button[data-act="progline"][aria-pressed="true"]{color:var(--accent-text)}}
 #projName{font:inherit;font-weight:650;font-size:1.05em;color:inherit;border:1px solid transparent;background:transparent;padding:.1rem .35rem;margin-left:-.35rem;border-radius:.4rem;width:22rem;max-width:50vw}
 #projName:hover,#projName:focus{border-color:var(--line);background:var(--surface-2)}
 @media (max-width:1400px){ .tools .seg[aria-label="Settings"] span{display:none} .findbox input{width:6rem} }
@@ -651,6 +653,11 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
       <label class="field">Paper <select id="prPaper"><option>A4</option><option>A3</option><option>Letter</option></select></label>
       <label class="field">Orientation <select id="prOrient"><option value="landscape">Landscape</option><option value="portrait">Portrait</option></select></label>
     </div>
+    <div class="row2">
+      <label class="field">Pages across <select id="prAcross"><option value="0">Auto</option><option value="1">1 (squeeze to fit)</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option></select></label>
+      <label class="field" style="justify-content:flex-end"><span><input type="checkbox" id="prRepeat"> Task columns on every page across</span></label>
+    </div>
+    <p class="note" id="prAcrossHint" aria-live="polite"></p>
     <fieldset>
       <legend>Dates to show</legend>
       <div class="radios">
@@ -679,7 +686,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
       <div class="checks" id="prCols"></div>
     </fieldset>
     </div></div>
-    <p class="note">Closed phases stay closed. In the print window, choose the same paper and orientation. If the page shows the file name or web address at the top or bottom, untick “Print headers and footers” (Safari) or “Headers and footers” (Edge and Chrome).</p>
+    <p class="note">Closed phases stay closed. With more than one page across, trim the right-hand margin and tape the pages side by side. In the print window, choose the same paper and orientation. If the page shows the file name or web address at the top or bottom, untick “Print headers and footers” (Safari) or “Headers and footers” (Edge and Chrome).</p>
     <div class="actions">
       <button type="button" id="prCancel">Cancel</button>
       <button type="submit" class="primary">Print…</button>
@@ -1125,7 +1132,7 @@ function afterChange(){
 
 /* ================= Loading, saving, undo ================= */
 function defaultCalendar(){ return { region:'england-and-wales', workdays:[true,true,true,true,true,false,false], custom:[], govuk:null }; }
-function defaultPrint(){ return { cols:null, logo:null, logoPos:'left', title:'', subtitle:'', paper:'A4', orient:'landscape', range:'all', from:'', to:'', arrows:true, critical:true, today:true, legend:true }; }
+function defaultPrint(){ return { cols:null, logo:null, logoPos:'left', title:'', subtitle:'', paper:'A4', orient:'landscape', range:'all', from:'', to:'', across:0, repeatCols:false, arrows:true, critical:true, today:true, legend:true }; }
 function normaliseProject(raw){
   if(!raw || typeof raw !== 'object' || !Array.isArray(raw.items)) throw new Error('This file doesn’t look like a Gantt Planner project.');
   const seen = new Set(), t = fromDay(todayDay());
@@ -1169,6 +1176,7 @@ function normaliseProject(raw){
     logoPos: rp.logoPos === 'right' ? 'right' : 'left', title:String(rp.title ?? '').slice(0, 150), subtitle:String(rp.subtitle ?? '').slice(0, 150),
     paper: ['A4','A3','Letter'].includes(rp.paper) ? rp.paper : dp.paper, orient: rp.orient === 'portrait' ? 'portrait' : 'landscape',
     range: rp.range === 'custom' ? 'custom' : 'all', from: toDay(rp.from) !== null ? rp.from : '', to: toDay(rp.to) !== null ? rp.to : '',
+    across: Number.isInteger(+rp.across) && +rp.across >= 1 && +rp.across <= 20 ? +rp.across : 0, repeatCols: !!rp.repeatCols,
     zebra: rp.zebra !== false, shading: !!rp.shading, progress: !!rp.progress, baseline: !!rp.baseline, timeline: !!rp.timeline, arrows: rp.arrows !== false, critical: rp.critical !== false, today: rp.today !== false, legend: rp.legend !== false,
     cols: Array.isArray(rp.cols) ? [...new Set(['name', ...rp.cols.filter(k => COLS[k])])] : null,
   };
@@ -2394,6 +2402,8 @@ function openPrint(){
   pr('prTitle').value = p.title || project.name; pr('prSub').value = p.subtitle;
   logoDraft = p.logo; showLogo(); pr('prLogoPos').value = p.logoPos;
   pr('prPaper').value = p.paper; pr('prOrient').value = p.orient;
+  pr('prAcross').value = String(p.across); if(pr('prAcross').selectedIndex < 0) pr('prAcross').value = '0';
+  pr('prRepeat').checked = p.repeatCols;
   printDlg.querySelector(`input[name=prRange][value=${p.range}]`).checked = true;
   const sp = project.items.length ? project.items.reduce((a, it) => { const s = spanOf(it); return { s:Math.min(a.s, s.s), e:Math.max(a.e, s.e) }; }, { s:Infinity, e:-Infinity }) : { s:todayDay(), e:todayDay() + 30 };
   pr('prFrom').value = p.from || fromDay(sp.s); pr('prTo').value = p.to || fromDay(sp.e - 1);
@@ -2402,7 +2412,26 @@ function openPrint(){
   const on = p.cols || visibleCols().map(c => c.key);
   pr('prCols').innerHTML = COL_ORDER.map(k => `<label><input type="checkbox" value="${k}"${on.includes(k) ? ' checked' : ''}${k === 'name' ? ' disabled' : ''}> ${k === 'num' ? 'Row number (#)' : COLS[k].label}</label>`).join('');
   printDlg.showModal();
+  updatePrintHint();
 }
+function readPrintForm(){
+  const o = { logo:logoDraft, logoPos:pr('prLogoPos').value, title:pr('prTitle').value.trim(), subtitle:pr('prSub').value.trim(),
+    paper:pr('prPaper').value, orient:pr('prOrient').value, range:printDlg.querySelector('input[name=prRange]:checked').value,
+    from:pr('prFrom').value, to:pr('prTo').value, across:+pr('prAcross').value || 0, repeatCols:pr('prRepeat').checked,
+    baseline:pr('prBase').checked, timeline:pr('prTl').checked, zebra:pr('prZebra').checked, shading:pr('prShade').checked, progress:pr('prProg').checked, arrows:pr('prArrows').checked, critical:pr('prCrit').checked, today:pr('prToday').checked, legend:pr('prLegend').checked,
+    cols:[...pr('prCols').querySelectorAll('input:checked')].map(i => i.value) };
+  if(o.cols.join() === visibleCols().map(c => c.key).join()) o.cols = null; // same as the screen: keep following it
+  if(o.title === project.name) o.title = '';
+  return o;
+}
+// Tell people how many sheets they'll get before they print
+function updatePrintHint(){
+  const n = buildPrint(readPrintForm(), true), s = k => k === 1 ? '' : 's';
+  pr('prAcrossHint').textContent = n.total === 1 ? 'Prints on 1 page.'
+    : n.across === 1 ? `Prints on ${n.total} pages, one below the other.`
+    : `Prints on ${n.total} page${s(n.total)}: ${n.across} across${n.down > 1 ? ` × ${n.down} down` : ''}.` + (n.auto ? ' Auto chose this so the months stay readable.' : '');
+}
+printDlg.addEventListener('change', updatePrintHint);
 pr('prLogoPick').addEventListener('click', () => els.logoInput.click());
 pr('prLogoRemove').addEventListener('click', () => { logoDraft = null; showLogo(); });
 for(const id of ['prFrom','prTo']) pr(id).addEventListener('change', () => { printDlg.querySelector('input[name=prRange][value=custom]').checked = true; });
@@ -2425,21 +2454,16 @@ async function processLogo(f){
 $('#prCancel').addEventListener('click', () => printDlg.close());
 $('#printForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const o = { logo:logoDraft, logoPos:pr('prLogoPos').value, title:pr('prTitle').value.trim(), subtitle:pr('prSub').value.trim(),
-    paper:pr('prPaper').value, orient:pr('prOrient').value, range:printDlg.querySelector('input[name=prRange]:checked').value,
-    from:pr('prFrom').value, to:pr('prTo').value, baseline:pr('prBase').checked, timeline:pr('prTl').checked, zebra:pr('prZebra').checked, shading:pr('prShade').checked, progress:pr('prProg').checked, arrows:pr('prArrows').checked, critical:pr('prCrit').checked, today:pr('prToday').checked, legend:pr('prLegend').checked,
-    cols:[...pr('prCols').querySelectorAll('input:checked')].map(i => i.value) };
-  if(o.cols.join() === visibleCols().map(c => c.key).join()) o.cols = null; // same as the screen: keep following it
-  if(o.title === project.name) o.title = '';
+  const o = readPrintForm();
   printDlg.close();
   commit(() => { project.print = o; }, { undoable:false });
   await doPrint();
 });
 const PAPER = { A4:[210,297], A3:[297,420], Letter:[215.9,279.4] };
 const PC = { blue:'#2f6fde', teal:'#0f8585', green:'#2e8a39', orange:'#c25e0c', pink:'#c0357a', purple:'#6f48c8', phase:'#3a3a44', crit:'#d0213b',
-  text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', today:'#d42a63', arrow:'#6b6b75', progress:'#d9480f', baseline:'#9a9aa6' };
-function buildPrint(){
-  const o = project.print, title = o.title || project.name;
+  text:'#1d1d1f', muted:'#5b5b63', line:'#9a9aa3', soft:'#e3e3e8', nonwork:'#ececf0', hol:'#fbe3ea', zebra:'#f6f6f8', today:'#d42a63', arrow:'#6b6b75', progress:'#0a58ca', baseline:'#9a9aa6' };
+function buildPrint(o = project.print, dry = false){
+  const title = o.title || project.name;
   const [pw, ph] = PAPER[o.paper], [W0, H0] = o.orient === 'landscape' ? [ph, pw] : [pw, ph];
   const W = W0 - 20, H = H0 - 24; // 10 mm margins (drawn by the page itself) plus a little slack so pages never spill
   const TL = o.timeline ? timelineLayout(W - 44) : null, TLH = TL ? 9 + TL.lanes * 4.2 + 5 : 0;
@@ -2460,30 +2484,52 @@ function buildPrint(){
   shrink(c => c.key === 'name' || c.key === 'notes'); shrink(() => true);
   cw = cw.map(w => +w.toFixed(2)); const lw = total();
   const tw = +(W - lw).toFixed(2);
-  let a, b, dw;
-  if(o.range === 'custom' && toDay(o.from) !== null && toDay(o.to) !== null && toDay(o.to) >= toDay(o.from)){ a = toDay(o.from); b = toDay(o.to) + 1; dw = tw / (b - a); }
+  // Dates: the whole project (with a little room either side) or the custom range
+  const custom = o.range === 'custom' && toDay(o.from) !== null && toDay(o.to) !== null && toDay(o.to) >= toDay(o.from);
+  let a, b;
+  if(custom){ a = toDay(o.from); b = toDay(o.to) + 1; }
   else {
     a = Infinity; b = -Infinity; for(const it of project.items){ const sp = spanOf(it); a = Math.min(a, sp.s); b = Math.max(b, sp.e); }
     if(a === Infinity){ a = todayDay(); b = a + 30; }
-    a -= 2; dw = (tw - 24) / (b - a); b = a + Math.ceil(tw / dw); // leave room on the right for the last labels
+    a -= 2;
   }
+  // Pages across: the timescale carries on from one sheet to the next. Later sheets use the full width unless the task columns repeat.
+  const twN = o.repeatCols ? tw : +W.toFixed(2), pad = custom ? 0 : 24; // pad leaves room on the right for the last labels
+  const MIN_DW = 0.3; // mm per day: about 9 mm a month, enough for month names
+  const fitDw = n => (tw + (n - 1) * twN - pad) / (b - a);
+  const auto = !(o.across >= 1);
+  let across = auto ? 1 : Math.min(20, Math.round(o.across));
+  if(auto) while(across < 20 && fitDw(across) < MIN_DW) across++;
+  if(dry) return { across, down:pages, total:across * pages, auto };
+  const dw = fitDw(across), TW = tw + (across - 1) * twN;
+  if(!custom) b = a + Math.ceil(TW / dw);
   const X = d => +((d - a) * dw).toFixed(3), t = todayDay();
-  // Timeline header (shared by every page)
-  let hdr = '';
-  const hseg = (x0, x1, y, h, label, bold) => {
-    let s = `<line x1="${X(x0)}" y1="${y}" x2="${X(x0)}" y2="${y + h}" stroke="${PC.soft}" stroke-width=".2"/>`;
-    if(label !== '' && (x1 - x0) * dw > String(label).length * (bold ? 1.6 : 1.4) + 1.2) s += `<text x="${X(x0) + .8}" y="${y + h - 1.3}" font-size="${bold ? 2.6 : 2.3}" ${bold ? 'font-weight="700"' : ''} fill="${bold ? PC.text : PC.muted}">${esc(label)}</text>`;
-    return s;
+  // Where each sheet across starts (mm from the start of the timescale), how wide it is, and the days it covers
+  const parts = Array.from({ length:across }, (_, k) => {
+    const off = k ? tw + (k - 1) * twN : 0, w = k ? twN : tw, pa = a + off / dw;
+    return { off, w, pa, pb:Math.min(b, pa + w / dw) };
+  });
+  // Timescale header for one sheet. Labels restart at the left edge of each sheet so every sheet can be read on its own.
+  const hdrFor = (pa, pb) => {
+    let hdr = '';
+    const fa = Math.floor(pa), fb = Math.ceil(pb), cl = (x0, x1) => [Math.max(x0, pa), Math.min(x1, pb)];
+    const hseg = (x0, x1, y, h, label, bold) => {
+      [x0, x1] = cl(x0, x1); if(x1 <= x0) return '';
+      let s = `<line x1="${X(x0)}" y1="${y}" x2="${X(x0)}" y2="${y + h}" stroke="${PC.soft}" stroke-width=".2"/>`;
+      if(label !== '' && (x1 - x0) * dw > String(label).length * (bold ? 1.6 : 1.4) + 1.2) s += `<text x="${X(x0) + .8}" y="${y + h - 1.3}" font-size="${bold ? 2.6 : 2.3}" ${bold ? 'font-weight="700"' : ''} fill="${bold ? PC.text : PC.muted}">${esc(label)}</text>`;
+      return s;
+    };
+    const wid = (x0, x1) => { const [c0, c1] = cl(x0, x1); return (c1 - c0) * dw; };
+    if(dw * 7 < 7){
+      for(let [y] = ymd(fa); dayOf(y, 0, 1) < fb; y++){ const x0 = dayOf(y, 0, 1), x1 = dayOf(y + 1, 0, 1); hdr += hseg(x0, x1, 0, CH / 2, wid(x0, x1) > 10 ? String(y) : '', true); }
+      eachMonth(fa, fb, (x0, x1) => { const w = wid(x0, x1); hdr += hseg(x0, x1, CH / 2, CH / 2, w > 8 ? fmt(x0, fMonthS) : w > 3.5 ? fmt(x0, fMonthS)[0] : '', false); });
+    } else {
+      (dw >= 4.4 ? eachMonth : eachWeekMonth)(fa, fb, (x0, x1, y, m) => { const w = wid(x0, x1), mo = dayOf(y, m, 1); hdr += hseg(x0, x1, 0, CH / 2, w > 28 ? fmt(mo, fMonth) : w > 12 ? fmt(mo, fMonthYS) : '', true); });
+      if(dw >= 4.4) for(let n = fa; n < fb; n++) hdr += hseg(n, n + 1, CH / 2, CH / 2, String(ymd(n)[2]), false);
+      else for(let n = fa - dow(fa); n < fb; n += 7) hdr += hseg(n, n + 7, CH / 2, CH / 2, dw * 7 >= 11 ? fmt(n) : String(ymd(n)[2]), false);
+    }
+    return hdr + `<line x1="${X(pa)}" y1="${CH / 2}" x2="${X(pb)}" y2="${CH / 2}" stroke="${PC.soft}" stroke-width=".2"/><line x1="${X(pa)}" y1="${CH}" x2="${X(pb)}" y2="${CH}" stroke="${PC.line}" stroke-width=".3"/>`;
   };
-  if(dw * 7 < 7){
-    for(let [y] = ymd(a); dayOf(y, 0, 1) < b; y++){ const x0 = Math.max(a, dayOf(y, 0, 1)), x1 = Math.min(b, dayOf(y + 1, 0, 1)); hdr += hseg(x0, x1, 0, CH / 2, (x1 - x0) * dw > 10 ? String(y) : '', true); }
-    eachMonth(a, b, (x0, x1) => { const w = (x1 - x0) * dw; hdr += hseg(x0, x1, CH / 2, CH / 2, w > 8 ? fmt(x0, fMonthS) : w > 3.5 ? fmt(x0, fMonthS)[0] : '', false); });
-  } else {
-    (dw >= 4.4 ? eachMonth : eachWeekMonth)(a, b, (x0, x1, y, m) => { const w = (x1 - x0) * dw, mo = dayOf(y, m, 1); hdr += hseg(x0, x1, 0, CH / 2, w > 28 ? fmt(mo, fMonth) : w > 12 ? fmt(mo, fMonthYS) : '', true); });
-    if(dw >= 4.4) for(let n = a; n < b; n++) hdr += hseg(n, n + 1, CH / 2, CH / 2, String(ymd(n)[2]), false);
-    else for(let n = a - dow(a); n < b; n += 7){ const x0 = Math.max(a, n); hdr += hseg(x0, Math.min(b, n + 7), CH / 2, CH / 2, dw * 7 >= 11 ? fmt(n) : String(ymd(n)[2]), false); }
-  }
-  hdr += `<line x1="0" y1="${CH / 2}" x2="${tw}" y2="${CH / 2}" stroke="${PC.soft}" stroke-width=".2"/><line x1="0" y1="${CH}" x2="${tw}" y2="${CH}" stroke="${PC.line}" stroke-width=".3"/>`;
   // Non-working shading (shared)
   let shade = '', hasHol = false;
   if(o.shading && dw >= 0.5) for(let n = a; n < b; n++){ if(cal.isWork(n)) continue; const h = cal.holiday(n); if(h) hasHol = true; shade += `<rect x="${X(n)}" y="${CH}" width="${+dw.toFixed(3)}" height="__H__" fill="${h ? PC.hol : PC.nonwork}" fill-opacity="${h ? 1 : .8}"/>`; }
@@ -2497,9 +2543,9 @@ function buildPrint(){
   for(let pg = 0; pg < pages; pg++){
     const slice = rows.slice(pg * per, (pg + 1) * per), bodyH = slice.length * RH, svgH = CH + bodyH;
     let left = `<div class="pr-row hd" style="grid-template-columns:${colTpl};height:${CH}mm">` + cols.map((c, ci) => `<div class="${COLS[c.key].num ? 'num' : ''}">${esc(c.key === 'pred' && cw[ci] < 24 ? 'Pred.' : COLS[c.key].label)}</div>`).join('') + '</div>';
-    let svg = '', labels = '';
-    slice.forEach((it, i) => { if(o.zebra && i % 2) svg += `<rect x="0" y="${CH + i * RH}" width="${tw}" height="${RH}" fill="${PC.zebra}"/>`; });
-    svg += shade.replaceAll('__H__', bodyH) + hdr;
+    let pre = '', svg = '', labels = ''; // pre sits under the timescale header, svg on top of it
+    slice.forEach((it, i) => { if(o.zebra && i % 2) pre += `<rect x="0" y="${CH + i * RH}" width="${X(b)}" height="${RH}" fill="${PC.zebra}"/>`; });
+    pre += shade.replaceAll('__H__', bodyH);
     slice.forEach((it, i) => {
       const r = rowInfo(it), kidsOn = hasKids(it), crit = o.critical && r.crit && !kidsOn;
       left += `<div class="pr-row ${it.type}${crit ? ' crit' : ''}${o.zebra && i % 2 ? ' z' : ''}" style="grid-template-columns:${colTpl};height:${RH}mm">` + cols.map(c =>
@@ -2553,8 +2599,9 @@ function buildPrint(){
     svg += labels; // on top of the arrows so they stay readable
     if(o.today && t >= a && t < b) svg += `<line x1="${X(t) + dw / 2}" y1="${CH}" x2="${X(t) + dw / 2}" y2="${svgH}" stroke="${PC.today}" stroke-width=".35"/>`;
     const mk = (id, c) => `<marker id="${id}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="1.6" markerHeight="1.6" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L8 4L0 8z" fill="${c}"/></marker>`;
-    const svgEl = `<svg xmlns="http://www.w3.org/2000/svg" width="${tw}mm" height="${svgH}mm" viewBox="0 0 ${tw} ${svgH}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif"><defs>${mk('pa' + pg, PC.arrow)}${mk('pa' + pg + 'c', PC.crit)}<clipPath id="pc${pg}"><rect width="${tw}" height="${svgH}"/></clipPath></defs><g clip-path="url(#pc${pg})">${svg}</g></svg>`;
-    const head = `<div class="pr-head${o.logoPos === 'right' ? ' right' : ''}" style="height:${HB - 2}mm">${o.logo ? `<img src="${o.logo}" alt="">` : ''}<div class="pr-titles"><div class="pr-title">${esc(title)}</div>${o.subtitle ? `<div class="pr-sub">${esc(o.subtitle)}</div>` : ''}<div class="pr-meta">${esc(rangeTxt)}</div></div></div>`;
+    // Each sheet across shows its own slice of the same drawing
+    const svgEl = (pt, k) => `<svg xmlns="http://www.w3.org/2000/svg" width="${pt.w}mm" height="${svgH}mm" viewBox="${pt.off} 0 ${pt.w} ${svgH}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif"><defs>${mk('pa' + pg, PC.arrow)}${mk('pa' + pg + 'c', PC.crit)}<clipPath id="pc${pg}_${k}"><rect x="${pt.off}" width="${pt.w}" height="${svgH}"/></clipPath></defs><g clip-path="url(#pc${pg}_${k})">${pre}${hdrFor(pt.pa, pt.pb)}${svg}</g></svg>`;
+    const head = `<div class="pr-head${o.logoPos === 'right' ? ' right' : ''}" style="height:${HB - 2}mm">${o.logo ? `<img src="${o.logo}" alt="">` : ''}<div class="pr-titles"><div class="pr-title">${esc(title)}</div>${o.subtitle ? `<div class="pr-sub">${esc(o.subtitle)}</div>` : ''}<div class="pr-meta">${esc(rangeTxt)}__PART__</div></div></div>`;
     const key = o.legend ? `<div class="pr-foot" style="height:${FT - 1}mm">
       <span class="pr-key"><i style="background:${PC.blue}"></i>Task</span>
       ${o.critical ? `<span class="pr-key"><i style="background:${PC.crit}"></i>Critical</span>` : ''}
@@ -2564,7 +2611,7 @@ function buildPrint(){
       ${usedBl ? `<span class="pr-key"><i style="background:${PC.baseline};height:1mm"></i>Baseline</span>` : ''}
       ${usedDl ? `<span class="pr-key"><svg width="2.4mm" height="1.8mm" viewBox="0 0 2.4 1.8"><path d="M0 0h2.4l-1.2 1.6z" fill="${PC.green}"/></svg>Deadline</span>` : ''}
       ${o.progress ? `<span class="pr-key"><i style="background:${PC.progress};height:.5mm"></i>Progress line (${esc(fmt(statusDay(), fMed))})</span>` : ''}
-      <span class="sp"></span><span>Printed ${esc(printed)}</span><span>Page ${pg + 1} of ${pages}</span></div>` : '';
+      <span class="sp"></span><span>Printed ${esc(printed)}</span><span>Page __PAGE__ of ${pages * across}</span></div>` : '';
     let tlSvg = '';
     if(TL){
       const LH = 4.2, top = 3; let g = `<rect x="22" y="${top - 1.5}" width="${W - 44}" height="${TL.lanes * LH + 2}" rx="1" fill="#f3f4f7" stroke="#e1e3ea" stroke-width=".2"/>`;
@@ -2574,7 +2621,11 @@ function buildPrint(){
       for(const m of TL.marks){ const x = 22 + m.x, y = top + TL.lanes * LH + 2.4; g += `<path d="M${x} ${y - 1.3}l1.3 1.3-1.3 1.3-1.3-1.3z" fill="${PC.purple}"/><text x="${x + 2}" y="${y + .8}" font-size="2.2" fill="${PC.muted}">${esc(m.it.name)} · ${esc(fmt(msDay(m.it), fShort))}</text>`; }
       tlSvg = `<svg width="${W}mm" height="${TLH}mm" viewBox="0 0 ${W} ${TLH}" style="display:block;margin-bottom:1.5mm" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif">${g}</svg>`;
     }
-    html += `<div class="pr-page" style="width:${W + 20}mm;height:${H + 20}mm">${head}${tlSvg}<div class="pr-body"><div class="pr-left" style="width:${lw}mm">${left}</div>${svgEl}</div>${key}</div>`;
+    parts.forEach((pt, k) => {
+      const part = across > 1 ? ` · Part ${k + 1} of ${across} across: ${fmt(Math.floor(pt.pa), fR)} to ${fmt(Math.max(Math.floor(pt.pa), Math.ceil(pt.pb) - 1), fR)}` : '';
+      const showLeft = k === 0 || o.repeatCols;
+      html += `<div class="pr-page" style="width:${W + 20}mm;height:${H + 20}mm">${head.replace('__PART__', esc(part))}${tlSvg}<div class="pr-body">${showLeft ? `<div class="pr-left" style="width:${lw}mm">${left}</div>` : ''}${svgEl(pt, k)}</div>${key.replace('__PAGE__', pg * across + k + 1)}</div>`;
+    });
   }
   // No page margin, so browsers have nowhere to add their own headers and footers; the page draws its own 10 mm margin
   $('#pageStyle').textContent = `@page{size:${o.paper} ${o.orient};margin:0}`;
@@ -3038,6 +3089,8 @@ function updateInstallButton(){ $('[data-act=install]').hidden = !installable();
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; updateInstallButton(); if(!project.items.length) render(); });
 window.addEventListener('appinstalled', () => { installPrompt = null; updateInstallButton(); });
 if(onWeb && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+// When installed as an app, ask the browser not to clear the autosaved project and backups to free up space
+if(matchMedia('(display-mode: standalone)').matches || navigator.standalone) navigator.storage?.persist?.().catch(() => {});
 function showInstallSteps(){
   const steps = $('#instSteps'), note = $('#instNote');
   if(isIPad()){
