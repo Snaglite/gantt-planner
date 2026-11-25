@@ -61,7 +61,7 @@ button{font:inherit;color:inherit}
 .tools{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem .45rem;padding:.4rem 1rem .55rem;border-top:1px solid var(--line-soft);background:var(--surface-2)}
 .spacer{flex:1}
 .divider{width:1px;height:1.4rem;background:var(--line);margin:0 .15rem}
-.toolbar button{display:inline-flex;align-items:center;gap:.3rem;font:inherit;font-size:.88em;color:var(--text);padding:0 .55rem;height:2rem;border:1px solid var(--line);background:var(--surface);border-radius:.5rem;cursor:pointer;white-space:nowrap;transition:background .12s}
+.toolbar button{display:inline-flex;align-items:center;gap:.3rem;font:inherit;font-size:.88em;color:var(--text);padding:0 .55rem;height:2rem;border:1px solid var(--line);background:var(--surface);border-radius:.5rem;cursor:pointer;white-space:nowrap;transition:background-color .15s,color .15s,border-color .15s,transform .1s}
 .toolbar button:hover:not(:disabled){background:var(--hover)}
 .toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px;position:relative;z-index:1}
 .toolbar button:disabled{opacity:.38;cursor:default}
@@ -367,6 +367,36 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
 @media (max-width:760px){ .deprow{grid-template-columns:1fr 1fr} .custrow{grid-template-columns:1fr 1fr} }
 
 /* Print layout (built on demand) */
+/* Motion: quick, gentle, and all switched off by "Reduce motion" */
+@keyframes dlgIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes savedPop{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+dialog[open]{animation:dlgIn .22s cubic-bezier(.2,.8,.2,1)}
+dialog[open]::backdrop{animation:fadeIn .22s ease-out}
+.ctxmenu:not([hidden]),.cellpop{animation:popIn .13s cubic-bezier(.2,.8,.2,1);transform-origin:top left}
+.toolbar button:active:not(:disabled),.wbtn:active,.dlg .actions button:active{transform:scale(.96)}
+.toolbar button.saved{animation:savedPop .35s ease-out}
+.lrow,.trow{transition:background-color .15s}
+/* The add row makes the table one row taller, so give the chart the same extra space: both then scroll in line */
+.split:has(.addrow:not([hidden])) .tl-body{padding-bottom:calc(3rem + var(--row))}
+.split:has(.addrow:not([hidden])) .tl-bg{bottom:calc(3rem + var(--row))}
+.lbody:has(+ .addrow:not([hidden])){padding-bottom:0}
+.addrow{margin-bottom:3rem;min-width:100%;width:max-content}
+.addrow{box-sizing:border-box;display:flex;align-items:center;gap:.5rem;height:var(--row);padding-left:2.4rem;border-bottom:1px dashed var(--line-soft);color:var(--muted);cursor:text}
+.addrow .plus{font-weight:600;width:1rem;text-align:center}
+.quickadd{font:inherit;color:var(--text);background:none;border:0;outline:none;flex:1;min-width:12rem;height:calc(var(--row) - .4rem);padding:0 .35rem;border-radius:.3rem}
+.quickadd::placeholder{color:var(--muted)}
+.quickadd:focus{background:var(--surface);box-shadow:0 0 0 2px var(--accent)}
+.bar,.ms{transition:box-shadow .15s,filter .15s}
+.bar.lift,.ms.lift{box-shadow:0 6px 16px rgba(0,0,0,.28);z-index:3;cursor:grabbing}
+@media (hover:hover){ .bar:hover,.ms:hover{filter:brightness(1.06)} }
+::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
+::view-transition{pointer-events:none}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after,dialog::backdrop{animation:none!important;transition:none!important}
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+}
 #printView{display:none}
 @media print{
   html,body{height:auto;display:block;background:#fff;color:#1d1d1f}
@@ -517,6 +547,7 @@ kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-widt
   <section class="pane lpane" id="lpane" aria-label="Task table">
     <div class="lhead" id="lhead" aria-hidden="true"></div>
     <div class="lbody" id="leftBody" role="listbox" aria-label="Tasks" tabindex="0"></div>
+    <div class="addrow" id="addRow" hidden><span class="plus" aria-hidden="true">+</span><input class="quickadd" id="quickAdd" maxlength="200" autocomplete="off" placeholder="Add a task" aria-label="New task: type a name and press Return"></div>
   </section>
   <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize the table" tabindex="0"></div>
   <section class="pane rpane" id="chart" aria-hidden="true">
@@ -1346,14 +1377,20 @@ async function saveFile(){
   if(canWriteFiles){
     try {
       if(!fileHandle) fileHandle = await window.showSaveFilePicker({ suggestedName:fileBase() + '.gantt.json', types:FILE_TYPES });
-      await writeToHandle(); markSaved(); return;
+      await writeToHandle(); markSaved(); savedTick(); return;
     } catch(e){
       if(e.name === 'AbortError') return;
       fileHandle = null; // fall back to an ordinary download
     }
   }
   download(projectJson(), fileBase() + '.gantt.json', 'application/json');
-  markSaved();
+  markSaved(); savedTick();
+}
+// A brief "Saved" on the Save button, so you can see it worked
+function savedTick(){
+  const b = $('[data-act=save]'), t = b?.querySelector('span'); if(!t) return;
+  clearTimeout(savedTick.timer); t.textContent = 'Saved'; b.classList.add('saved');
+  savedTick.timer = setTimeout(() => { t.textContent = 'Save'; b.classList.remove('saved'); }, 1400);
 }
 async function autosaveToFile(){
   if(!fileHandle || !meta.dirty || Date.now() - lastAutosave < 2 * 60000) return;
@@ -1423,7 +1460,72 @@ function applyColumns(){
     return `<div class="c k-${c.key}${d.num ? ' num' : ''}" data-hcol="${c.key}"${d.title ? ` title="${esc(d.title)}"` : ''}${c.key === 'name' ? ' style="padding-left:2rem"' : ''}><span class="lbl">${d.label}</span><span class="col-resize" data-col="${c.key}"></span></div>`;
   }).join('');
 }
+/* ================= Motion =================
+   Every change redraws the chart from scratch, so things would jump. Instead, note where each bar and row was just before
+   a redraw, then glide each one from there to its new place (the "FLIP" technique). Skipped when "Reduce motion" is on,
+   while dragging, when the zoom changed (that cross-fades instead) and when too much moves at once. */
+const motionOK = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EASE = 'cubic-bezier(.2,.8,.2,1)', GLIDE = 240, MAX_MOVES = 150;
+function snapPositions(){
+  const bars = new Map(), rows = new Map();
+  for(const tr of els.tlRows.children){
+    const b = tr.querySelector(':scope > .bar, :scope > .ms:not(.bline)'), lab = tr.querySelector(':scope > .blabel'), pr = b?.querySelector(':scope > .prog');
+    bars.set(tr.dataset.id, { top:tr.offsetTop, left:b ? parseFloat(b.style.left) : null, width:b ? parseFloat(b.style.width) || 0 : 0, lx:lab ? parseFloat(lab.style.left) : null, prog:pr ? pr.style.width : null });
+  }
+  for(const lr of els.leftBody.children) if(lr.dataset.id) rows.set(lr.dataset.id, lr.offsetTop);
+  return { bars, rows, origin:view.origin, dayW:view.dayW };
+}
+function playMoves(snap){
+  if(snap.dayW !== view.dayW || !snap.bars.size) return; // zoom changes cross-fade instead
+  const shift = (view.origin - snap.origin) * view.dayW; // the chart may have grown on the left: that alone isn't a move
+  const jobs = [], fresh = [], opt = { duration:GLIDE, easing:EASE };
+  for(const tr of els.tlRows.children){
+    const id = tr.dataset.id, old = snap.bars.get(id);
+    if(!old){ fresh.push(tr); continue; }
+    const dy = old.top - tr.offsetTop;
+    if(Math.abs(dy) > .5) jobs.push(() => tr.animate([{ transform:`translateY(${dy}px)` }, { transform:'none' }], opt));
+    const b = tr.querySelector(':scope > .bar, :scope > .ms:not(.bline)');
+    if(b && old.left !== null){
+      const l0 = old.left - shift, l1 = parseFloat(b.style.left), w1 = parseFloat(b.style.width) || 0;
+      if(Math.abs(l0 - l1) > .5 || (w1 && Math.abs(old.width - w1) > .5))
+        jobs.push(() => b.animate([w1 ? { left:l0 + 'px', width:old.width + 'px' } : { left:l0 + 'px' }, w1 ? { left:l1 + 'px', width:w1 + 'px' } : { left:l1 + 'px' }], opt));
+      const pr = b.querySelector(':scope > .prog');
+      if(pr && old.prog !== null && old.prog !== pr.style.width) jobs.push(() => pr.animate([{ width:old.prog }, { width:pr.style.width }], opt));
+    }
+    const lab = tr.querySelector(':scope > .blabel');
+    if(lab && old.lx !== null){ const dx = old.lx - shift - parseFloat(lab.style.left); if(Math.abs(dx) > .5) jobs.push(() => lab.animate([{ transform:`translateX(${dx}px)` }, { transform:'none' }], opt)); }
+  }
+  for(const lr of els.leftBody.children){
+    const old = snap.rows.get(lr.dataset.id);
+    if(old === undefined){ if(lr.dataset.id) fresh.push(lr); continue; }
+    const dy = old - lr.offsetTop;
+    if(Math.abs(dy) > .5) jobs.push(() => lr.animate([{ transform:`translateY(${dy}px)` }, { transform:'none' }], opt));
+  }
+  if(jobs.length + fresh.length > MAX_MOVES) return; // a big change: just show it
+  jobs.forEach(j => j());
+  for(const el of fresh) el.animate([{ opacity:0, transform:'translateY(-4px)' }, { opacity:1, transform:'none' }], { duration:200, easing:EASE });
+  // Arrows are redrawn as lines, so they can't glide: let them fade in once the bars have settled
+  els.arrows.getAnimations().forEach(a => a.cancel());
+  if(jobs.length || fresh.length) els.arrows.animate([{ opacity:0 }, { opacity:1 }], { duration:160, delay:GLIDE * .6, easing:'ease-out', fill:'backwards' });
+}
+// Links just made with ⌘L, the Link button or the drag dot draw themselves in from start to end
+const freshLinks = new Set();
+function drawFreshLinks(){
+  if(!freshLinks.size) return;
+  freshLinks.clear();
+  if(!motionOK()) return;
+  for(const path of els.arrows.querySelectorAll('path.link.fresh')){
+    const len = path.getTotalLength();
+    path.animate([{ strokeDasharray:`${len} ${len}`, strokeDashoffset:len }, { strokeDasharray:`${len} ${len}`, strokeDashoffset:0 }], { duration:420, delay:120, easing:EASE, fill:'backwards' });
+  }
+}
 function render(){
+  const snap = motionOK() && !drag && !reorder && !linkDrag && els.tlRows.firstElementChild ? snapPositions() : null;
+  renderNow();
+  if(snap) playMoves(snap);
+  drawFreshLinks();
+}
+function renderNow(){
   reindex();
   applyColumns();
   els.split.classList.toggle('zebra', project.zebra);
@@ -1581,8 +1683,9 @@ function renderRows(vis){
       ${installable() ? `<div class="install-tip"><span>Use it like a normal app, with its own icon.</span><button type="button" class="wbtn" data-empty="install">Install app</button></div>` : ''}
       <p class="note">Files from Microsoft Project work too: in Project, choose File › Save As › XML.</p>
     </div>`;
-  else if(!vis.length) L = `<div class="empty">No tasks match this filter. <button type="button" class="linkbtn" id="clearFilterBtn">Show all tasks</button></div>`;
+  if(project.items.length && !vis.length) L = `<div class="empty">No tasks match this filter. <button type="button" class="linkbtn" id="clearFilterBtn">Show all tasks</button></div>`;
   els.leftBody.innerHTML = L; els.tlRows.innerHTML = T;
+  $('#addRow').hidden = !project.items.length || filterOn() || !canEdit(); // the add row lives outside the redrawn table, so typing in it survives redraws
   if(extraSel.size) select(selectedId, { keep:true });
   if(vis.some(v => v.id === selectedId)) els.leftBody.setAttribute('aria-activedescendant', 'row-' + selectedId); else els.leftBody.removeAttribute('aria-activedescendant');
 }
@@ -1616,7 +1719,7 @@ function renderArrows(vis){
   const rh = first.getBoundingClientRect().height, { origin, dayW } = view, showCrit = project.showCritical;
   svg.setAttribute('width', Math.round((view.end - origin) * dayW)); svg.setAttribute('height', Math.ceil(vis.length * rh));
   const links = linkGeometry(vis, rh, d => (d - origin) * dayW, 7);
-  const p = links.map(l => { const c = showCrit && l.crit; return `<path class="link${c ? ' crit' : ''}" d="${l.d}" marker-end="url(#${c ? 'ahc' : 'ah'})"/>`; }).join('');
+  const p = links.map(l => { const c = showCrit && l.crit, f = freshLinks.has(vis[l.pi]?.id + '>' + vis[l.i]?.id); return `<path class="link${c ? ' crit' : ''}${f ? ' fresh' : ''}" d="${l.d}" marker-end="url(#${c ? 'ahc' : 'ah'})"/>`; }).join('');
   const mk = (id, cls) => `<marker id="${id}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="${cls}" d="M0 0L8 4L0 8z"/></marker>`;
   let pl = '';
   if(project.progressLine){
@@ -1667,8 +1770,8 @@ function select(id, { scroll = false, keep = false } = {}){
 }
 
 /* ================= Actions ================= */
-function addItem(type){
-  const sel = byId.get(selectedId);
+function addItem(type, { inline = false } = {}){
+  const sel = byId.get(selectedId), prevSel = selectedId;
   let parent = null, at = project.items.length, start = todayDay();
   if(sel){
     const i = project.items.indexOf(sel), sp = spanOf(sel); at = blockEnd(i);
@@ -1676,11 +1779,37 @@ function addItem(type){
     else { parent = sel.parent; start = sp.e; }
   }
   const it = { id:uid(), type, name:{ task:'New task', milestone:'New milestone', phase:'New phase' }[type], start:fromDay(start),
-    duration:type === 'milestone' ? 1 : 5, progress:0, deps:[], parent, color:sel && sel.type !== 'phase' ? sel.color : 'blue', notes:'', collapsed:false };
+    duration:type === 'milestone' ? 1 : 5, progress:0, deps:[], resource:'', parent, color:sel && sel.type !== 'phase' ? sel.color : 'blue', notes:'', collapsed:false };
   commit(() => { if(parent) byId.get(parent).collapsed = false; project.items.splice(at, 0, it); });
   select(it.id, { scroll:true });
-  openEditor(it.id, true);
+  if(inline){ selectedCol = 'name'; select(it.id); inlineNewId = it.id; inlinePrevSel = prevSel; startCellEdit(''); } // ⌘Return: type the name straight into the row
+  else openEditor(it.id, true);
 }
+// ⌘Return (Ctrl+Enter on Windows) or Insert: add a task below the selected row and type its name in place
+function addTaskInline(){ if(!guard()) return; clearFilter(); addItem('task', { inline:true }); }
+/* Quick add: the "+ Add a task" row under the last task. Type a name, press Return, and it's added at the end;
+   the box stays ready for the next one. New tasks sit alongside the last row and start when it finishes. */
+function quickAdd(name){
+  if(!guard()) return;
+  const vis = visibleItems(), last = vis[vis.length - 1];
+  const at = last ? blockEnd(project.items.indexOf(last)) : project.items.length;
+  const it = { id:uid(), type:'task', name:name.slice(0, 200), start:fromDay(last ? spanOf(last).e : todayDay()), duration:5, progress:0, deps:[], resource:'',
+    parent:last ? last.parent : null, color:last && last.type !== 'phase' ? last.color : 'blue', notes:'', collapsed:false };
+  commit(() => { project.items.splice(at, 0, it); });
+  selectedId = it.id; select(it.id);
+  // Keep the box in view by scrolling just the table up and down (scrollIntoView would also shift the page and the columns)
+  const q = $('#quickAdd'); q.value = '';
+  if(document.activeElement !== q) q.focus({ preventScroll:true });
+  const r = q.getBoundingClientRect(), pr = els.lpane.getBoundingClientRect(), vb = window.visualViewport ? visualViewport.offsetTop + visualViewport.height : innerHeight;
+  const over = r.bottom - (Math.min(pr.bottom, vb) - 16); if(over > 0) els.lpane.scrollTop += over;
+}
+$('#quickAdd').addEventListener('keydown', e => {
+  const q = e.currentTarget; if(e.isComposing) return; // still composing (Japanese and similar): Return picks the characters
+  if(e.key === 'Enter'){ e.preventDefault(); const v = q.value.trim(); if(v) quickAdd(v); }
+  else if(e.key === 'Escape'){ e.preventDefault(); q.value = ''; q.blur(); els.leftBody.focus({ preventScroll:true }); }
+});
+// Clicking anywhere on the add row (not just the text) goes to the box
+$('#addRow').addEventListener('click', e => { if(e.target.id !== 'quickAdd') $('#quickAdd').focus(); });
 // Apply formatting to every selected row
 function formatSel(fn){
   const ids = selIds(); if(!ids.length) return;
@@ -1731,14 +1860,20 @@ function outdent(){
   }, { keepLinks:true });
   select(selectedId);
 }
+// Cross-fade between the old and new view where the browser can (Safari 18+, Chrome); instant elsewhere
+const crossFade = fn => motionOK() && document.startViewTransition ? document.startViewTransition(fn) : fn();
 function setZoom(z){
   if(!ZOOMS[z] || (z === project.zoom && !project.fitW)) return;
+  crossFade(() => setZoomNow(z));
+}
+function setZoomNow(z){
   const leftDay = view.origin + els.chart.scrollLeft / view.dayW;
   project.zoom = z; project.fitW = null; persist(); render();
   els.chart.scrollLeft = (leftDay - view.origin) * view.dayW;
 }
 // Fit the whole project into the visible chart width. The timescale labels follow the nearest zoom level.
-function zoomToFit(){
+function zoomToFit(){ crossFade(zoomToFitNow); }
+function zoomToFitNow(){
   let s = Infinity, e = -Infinity; for(const it of project.items){ const sp = spanOf(it); s = Math.min(s, sp.s); e = Math.max(e, sp.e); }
   if(s === Infinity) return;
   const w = Math.min(40, Math.max(0.2, (els.chart.clientWidth - 160) / (e - s + 4))); // room on the right for the last label
@@ -2089,7 +2224,8 @@ function startCellEdit(initial = null){
   if(input.inputMode === 'none'){} // calendar only: no text selection handles on a touch screen
   else if(initial === null) input.select(); else input.setSelectionRange(input.value.length, input.value.length);
   input.addEventListener('keydown', e => {
-    if(e.key === 'Enter'){ e.preventDefault(); finishCellEdit(true, 'down'); }
+    if(e.key === 'Enter' && (e.metaKey || e.ctrlKey)){ e.preventDefault(); if(finishCellEdit(true) !== false) addTaskInline(); }
+    else if(e.key === 'Enter'){ e.preventDefault(); finishCellEdit(true, 'down'); }
     else if(e.key === 'Tab'){ e.preventDefault(); finishCellEdit(true, e.shiftKey ? 'left' : 'right'); }
     else if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); finishCellEdit(false); }
   });
@@ -2099,7 +2235,7 @@ function startCellEdit(initial = null){
 }
 /* Pop-ups under a cell while typing: a small calendar for dates, and a list of names for "Assigned to".
    Typing still works as before; the pop-up is just a shortcut. Clicks on it don't take focus from the cell. */
-let cellPop = null, popPickedAt = 0, typingWanted = false;
+let cellPop = null, popPickedAt = 0, typingWanted = false, inlineNewId = null, inlinePrevSel = null; // inlineNewId: a task just added with ⌘Return, still waiting for its name
 function closeCellPop(){ if(!cellPop) return; cellPop.el.remove(); els.lpane.removeEventListener('scroll', cellPop.place); window.visualViewport?.removeEventListener('resize', cellPop.onKeyboard); cellPop = null; }
 function showCellPop(el, cell){
   closeCellPop();
@@ -2168,7 +2304,7 @@ function openNamePop(input, cell, it, startedTyping = false){
   input.addEventListener('input', () => { typed = true; hi = -1; draw(); });
   input.addEventListener('keydown', e => {
     if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); e.stopImmediatePropagation(); if(shown.length) hi = hi < 0 ? (e.key === 'ArrowDown' ? 0 : shown.length - 1) : (hi + (e.key === 'ArrowDown' ? 1 : shown.length - 1)) % shown.length; draw(); }
-    else if(e.key === 'Enter' && hi >= 0){ e.preventDefault(); e.stopImmediatePropagation(); pick(shown[hi]); }
+    else if(e.key === 'Enter' && hi >= 0 && !e.metaKey && !e.ctrlKey){ e.preventDefault(); e.stopImmediatePropagation(); pick(shown[hi]); }
   }, { capture:true });
   draw(); showCellPop(el, cell);
 }
@@ -2176,6 +2312,10 @@ function finishCellEdit(save, move = null){
   const ce = cellEdit; if(!ce || ce.done) return;
   ce.done = true; cellEdit = null; closeCellPop();
   const it = byId.get(ce.id), v = ce.input.value;
+  // Escape (or no name) on a task just added with ⌘Return: take the empty task away again
+  const wasNew = ce.id === inlineNewId; inlineNewId = null;
+  if(wasNew && (!save || (move && !v.trim())) && undoStack.length){ restore(undoStack.pop()); if(byId.has(inlinePrevSel)) select(inlinePrevSel); els.leftBody.focus({ preventScroll:true }); return; }
+  if(wasNew && !v.trim()){ render(); return; } // clicked away before naming it: keep it as "New task" 
   let error = null;
   if(save && it && v !== cellValue(it, ce.col)){
     try { applyCell(it, ce.col, v); } catch(x){ error = x.message; }
@@ -2183,6 +2323,7 @@ function finishCellEdit(save, move = null){
   render();
   if(error){ showCellError(error); }
   if(move && !error) moveCell(move);
+  if(error){ select(selectedId); els.leftBody.focus({ preventScroll:true }); return false; }
   select(selectedId);
   els.leftBody.focus({ preventScroll:true });
 }
@@ -2245,7 +2386,7 @@ els.tlRows.addEventListener('pointerdown', e => {
   const label = row.querySelector('.blabel');
   drag = { id, mode:e.target.closest('.handle') ? 'resize' : 'move', x0:e.clientX, y0:e.clientY, el:target, label,
     left0:parseFloat(target.style.left), width0:parseFloat(target.style.width) || 0, lx0:parseFloat(label.style.left), dd:0 };
-  target.setPointerCapture(e.pointerId);
+  target.setPointerCapture(e.pointerId); target.classList.add('lift');
   document.body.classList.add('dragging');
   e.preventDefault();
 });
@@ -2298,7 +2439,7 @@ function linkSelected(){
       const p = byId.get(ids[i - 1]), it = byId.get(ids[i]);
       if(!p || !it || it.deps.some(d => d.id === p.id)) continue;
       if(!canDependOn(it, p)){ skipped++; continue; }
-      it.deps.push({ id:p.id, type:'FS', lag:0 });
+      it.deps.push({ id:p.id, type:'FS', lag:0 }); freshLinks.add(p.id + '>' + it.id);
     }
   });
   select(selectedId, { keep:true });
@@ -2350,6 +2491,7 @@ function endLinkDrag(e){
   const p = byId.get(id), it = byId.get(over.dataset.id);
   if(!p || !it || it.deps.some(d => d.id === p.id)) return;
   if(!canDependOn(it, p)){ alert(`“${it.name}” can’t wait for “${p.name}”: it would make a loop.`); return; }
+  freshLinks.add(p.id + '>' + it.id);
   commit(() => { it.deps.push({ id:p.id, type:'FS', lag:0 }); });
   select(it.id);
 }
@@ -2372,6 +2514,7 @@ document.addEventListener('keydown', e => {
   if(e.target.closest?.('input,textarea,select')) return;
   if(mod && k === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if(mod && k === 'y'){ e.preventDefault(); redo(); return; }
+  if((mod && e.key === 'Enter') || e.key === 'Insert'){ e.preventDefault(); addTaskInline(); return; }
   if(mod && k === 'l'){ e.preventDefault(); e.shiftKey ? unlinkSelected() : linkSelected(); return; }
   if(mod && k === 'f'){ e.preventDefault(); $('#findBox').focus(); $('#findBox').select(); return; }
   if(e.target.closest?.('input,textarea,select')) { /* typing in a box: leave copy and paste alone */ }
@@ -3321,7 +3464,8 @@ tbMenu.addEventListener('keydown', e => {
   else if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); const b = tbMenuBtn; closeTbMenu(); b?.focus(); }
 });
 const getTheme = () => { try { return localStorage.getItem('ganttPlanner.theme') || 'auto'; } catch(e){ return 'auto'; } };
-function setTheme(t){
+function setTheme(t){ crossFade(() => setThemeNow(t)); }
+function setThemeNow(t){
   try { if(t === 'auto') localStorage.removeItem('ganttPlanner.theme'); else localStorage.setItem('ganttPlanner.theme', t); } catch(e){}
   if(t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
   render();
@@ -3378,7 +3522,7 @@ updateInstallButton();
 $('#keysList').innerHTML = [
   ['↑ ↓ ← →', 'move between cells'], ['type', 'replace the selected cell'], ['F2 or Return', 'change the selected cell'], ['Tab', 'next cell'], ['Esc', 'cancel typing'], ['double-click', 'open all the details'], ['Delete', 'delete the selected rows'],
   [isMac ? 'Option ↑ ↓' : 'Alt+↑ ↓', 'move it up or down'], [isMac ? 'Option → ←' : 'Alt+→ ←', 'indent or outdent'],
-  ['→ ←', 'open or close a phase'], [MOD + 'Z', 'undo'], [MOD + 'C / ' + MOD + 'V', 'copy and paste rows'], [MOD + 'D', 'fill down the selected cells'], [MOD + 'L', 'link the selected rows in order'], ['⇧' + MOD + 'L', 'remove links between the selected rows'], [MOD + 'F', 'find'], [MOD + 'S', 'save to a file'], [MOD + 'O', 'open a file'], [MOD + 'P', 'print'],
+  ['→ ←', 'open or close a phase'], [MOD + 'Z', 'undo'], [MOD + 'C / ' + MOD + 'V', 'copy and paste rows'], [MOD + 'D', 'fill down the selected cells'], [MOD + '↩', 'add a task below and type its name'], [MOD + 'L', 'link the selected rows in order'], ['⇧' + MOD + 'L', 'remove links between the selected rows'], [MOD + 'F', 'find'], [MOD + 'S', 'save to a file'], [MOD + 'O', 'open a file'], [MOD + 'P', 'print'],
 ].map(([k, v]) => `<li><kbd>${k}</kbd> ${v}</li>`).join('');
 $('#helpClose').addEventListener('click', () => els.help.close());
 $('#helpLicence').addEventListener('click', () => { els.help.close(); openLicence(); });
