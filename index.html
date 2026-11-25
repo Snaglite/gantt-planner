@@ -425,7 +425,6 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
 .pr-row div{padding:0 1.6mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .pr-row .num{text-align:right}
 .pr-row.phase{font-weight:700}
-.pr-row.crit .k-name{color:#d0213b}
 .pr-foot{position:absolute;left:10mm;right:10mm;bottom:10mm;display:flex;align-items:center;gap:5mm;font-size:2.5mm;color:#5b5b63;border-top:.2mm solid #c9c9cf}
 .pr-foot .sp{flex:1}
 .pr-key{display:inline-flex;align-items:center;gap:1.2mm}
@@ -491,7 +490,7 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
     </div>
     <div class="seg" role="group" aria-label="Output">
       <button data-act="print" data-key="P" title="Print or save as PDF"><svg class="i"><use href="#i-print"/></svg><span>Print…</span></button>
-      <button data-act="exportmenu" aria-haspopup="menu" aria-expanded="false" title="Export for a spreadsheet or Microsoft Project"><svg class="i"><use href="#i-export"/></svg><span>Export</span><span class="caret" aria-hidden="true">▾</span></button>
+      <button data-act="exportmenu" aria-haspopup="menu" aria-expanded="false" title="Export as a PDF, for a spreadsheet or for Microsoft Project"><svg class="i"><use href="#i-export"/></svg><span>Export</span><span class="caret" aria-hidden="true">▾</span></button>
     </div>
     <button data-act="install" class="installbtn" hidden title="Install Gantt Planner on this device"><svg class="i"><use href="#i-install"/></svg><span>Install app</span></button>
     <button data-act="save" data-key="S" class="primary" title="Save the project to a file"><svg class="i"><use href="#i-save"/></svg><span>Save</span></button>
@@ -772,7 +771,7 @@ dialog[open]::backdrop{animation:fadeIn .22s ease-out}
     <div class="actions">
       <button type="button" id="prCancel">Cancel</button>
       <button type="button" id="prPdf" title="Make a PDF file at exactly this paper size and orientation">Save as PDF</button>
-      <button type="submit" class="primary">Print…</button>
+      <button type="submit" class="primary" id="prPrint">Print…</button>
     </div>
   </form>
 </dialog>
@@ -3187,8 +3186,12 @@ $('#calForm').addEventListener('submit', e => { e.preventDefault(); const c = re
 const printDlg = $('#printDlg'), pr = id => $('#' + id);
 let logoDraft = null;
 function showLogo(){ const img = pr('prLogoImg'); img.hidden = !logoDraft; pr('prLogoRemove').hidden = !logoDraft; if(logoDraft) img.src = logoDraft; else img.removeAttribute('src'); }
-function openPrint(){
+// From Export › PDF…, the same dialog opens titled "Save as PDF", with that as the main button
+function openPrint(forPdf = false){
   if(!guard()) return;
+  $('#prTitleH').textContent = forPdf ? 'Save as PDF' : 'Print'; printDlg.dataset.mode = forPdf ? 'pdf' : 'print';
+  pr('prPdf').classList.toggle('primary', forPdf); pr('prPrint').classList.toggle('primary', !forPdf);
+  pr('prPdf').after(pr('prPrint')); if(forPdf) pr('prPrint').after(pr('prPdf')); // the main button goes last, on the right
   const p = project.print;
   pr('prTitle').value = p.title || project.name; pr('prSub').value = p.subtitle;
   logoDraft = p.logo; showLogo(); pr('prLogoPos').value = p.logoPos;
@@ -3250,6 +3253,7 @@ async function processLogo(f){
 $('#prCancel').addEventListener('click', () => printDlg.close());
 $('#printForm').addEventListener('submit', async e => {
   e.preventDefault();
+  if(printDlg.dataset.mode === 'pdf' && e.submitter?.id !== 'prPrint'){ pr('prPdf').click(); return; } // Return in a box does the main action
   const o = readPrintForm();
   printDlg.close();
   commit(() => { project.print = o; }, { undoable:false });
@@ -3514,7 +3518,7 @@ function buildPages(o, dry, mode){
     slice.forEach((it, i) => {
       const r = rowInfo(it), kidsOn = hasKids(it), crit = o.critical && r.crit && !kidsOn;
       left += `<div class="pr-row ${it.type}${crit ? ' crit' : ''}${o.zebra && i % 2 ? ' z' : ''}" style="grid-template-columns:${colTpl};height:${RH}mm${it.hl ? ';background:' + PC.hl[it.hl] : ''}">` + cols.map(c =>
-        c.key === 'name' ? `<div class="k-name" style="padding-left:${1 + depth(it) * 3}mm;${it.bold ? 'font-weight:700;' : ''}${it.italic ? 'font-style:italic;' : ''}${it.textColor && !crit ? 'color:' + PC[it.textColor === 'red' ? 'crit' : it.textColor] : ''}">${r.ms ? '◆ ' : ''}${esc(it.name)}</div>`
+        c.key === 'name' ? `<div class="k-name" style="padding-left:${1 + depth(it) * 3}mm;${it.bold ? 'font-weight:700;' : ''}${it.italic ? 'font-style:italic;' : ''}${it.textColor ? 'color:' + PC[it.textColor === 'red' ? 'crit' : it.textColor] : ''}">${r.ms ? '◆ ' : ''}${esc(it.name)}</div>`
           : `<div class="${COLS[c.key].num ? 'num' : ''}">${esc(cellText(c.key, it, r))}</div>`).join('') + '</div>';
       const y = CH + i * RH;
       const col = crit && !kidsOn ? PC.crit : kidsOn || it.type === 'phase' ? PC.phase : PC[it.color];
@@ -3556,7 +3560,7 @@ function buildPages(o, dry, mode){
         }
       }
       const lx = r.ms ? x + 2.4 : Math.max(X(r.sp.e), 0) + 1.2;
-      labels += `<text x="${lx}" y="${y + RH / 2 + .85}" font-size="2.4" fill="${crit ? PC.crit : it.textColor ? PC[it.textColor === 'red' ? 'crit' : it.textColor] : PC.text}"${it.bold ? ' font-weight="700"' : ''}${it.italic ? ' font-style="italic"' : ''} stroke="${it.hl ? PC.hl[it.hl] : o.zebra && i % 2 ? PC.zebra : '#fff'}" stroke-width=".9" stroke-linejoin="round" paint-order="stroke">${esc(it.name)}</text>`;
+      labels += `<text x="${lx}" y="${y + RH / 2 + .85}" font-size="2.4" fill="${it.textColor ? PC[it.textColor === 'red' ? 'crit' : it.textColor] : PC.text}"${it.bold ? ' font-weight="700"' : ''}${it.italic ? ' font-style="italic"' : ''} stroke="${it.hl ? PC.hl[it.hl] : o.zebra && i % 2 ? PC.zebra : '#fff'}" stroke-width=".9" stroke-linejoin="round" paint-order="stroke">${esc(it.name)}</text>`;
     });
     if(o.arrows){
       const links = linkGeometry(slice, RH, X, 1.8).filter(l => slice[l.pi] && slice[l.i]);
@@ -4053,6 +4057,7 @@ Object.assign(ACTIONS, {
   exportmenu:() => openTbMenu($('[data-act=exportmenu]'), [
     { v:'csv', label:'Spreadsheet (CSV)', hint:'For Excel or Numbers', run:exportCsv },
     { v:'xml', label:'Microsoft Project (XML)', hint:'Opens in Project 2016 and later', run:exportMsProject },
+    { v:'pdf', label:'PDF…', hint:'Set the page up, then save', run:() => openPrint(true) },
   ]),
   thememenu:() => { const t = getTheme(); openTbMenu($('[data-act=thememenu]'), [
     { v:'auto', label:'Automatic', hint:'Follows your computer', checked:t === 'auto', run:() => setTheme('auto') },
