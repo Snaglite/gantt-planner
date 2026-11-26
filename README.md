@@ -1,7 +1,5 @@
-# Gantt Planner
+# Gantt Planner has moved
 
-Open the app at https://snaglite.github.io/gantt-planner/
+Gantt Planner now lives at **https://ganttplanner.co.uk**.
 
-To install it: click **Install app** in the app (Edge or Chrome on Windows), choose File › Add to Dock (Safari on Mac), or tap Share › Add to Home Screen (iPad).
-
-Your projects are kept on your own device. Nothing is sent to this website.
+This address (https://snaglite.github.io/gantt-planner/) only shows a "moved" page. It lets anyone who used the old version download the projects kept in their browser here, and copy their licence key, so they can open them at the new address.
